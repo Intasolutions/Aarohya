@@ -1,0 +1,117 @@
+<!-- TOP of add.ejs -->
+<%- include('../../partials/admin_head', { pageTitle: 'Add Product' }) %>
+
+
+
+
+<div class="container py-5">
+  <!-- Header -->
+  <div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1>Add New Product</h1>
+      <p class="text-muted">Create a new product by filling in details below</p>
+    </div>
+<a href="/admin/products" 
+   class="btn rounded-pill px-4 py-2 shadow-sm d-inline-flex align-items-center"
+   style="background: var(--primary); color: var(--dark); border: none; transition: all 0.3s ease;">
+  <i class="bi bi-arrow-left me-2"></i> Back
+</a>
+
+  </div>
+
+  <!-- Form Card -->
+  <div class="card card-modern p-4">
+    <form action="/admin/products/add" method="POST" enctype="multipart/form-data">
+
+      <!-- Basic Info -->
+      <div class="section-title"><i class="bi bi-info-circle"></i> Basic Information</div>
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Product Name</label>
+          <input type="text" name="productName" class="form-control" placeholder="Premium Leather Wallet" required>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Brand</label>
+          <select name="brandId" class="form-select">
+            <option disabled selected>-- Select Brand --</option>
+            <% brands.forEach(b => { %>
+              <option value="<%= b._id %>"><%= b.brandName %></option>
+            <% }) %>
+          </select>
+        </div>
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Description</label>
+        <textarea name="description" class="form-control" rows="4" placeholder="Describe your product..."></textarea>
+      </div>
+
+      <!-- Categories -->
+      <div class="section-title"><i class="bi bi-tags"></i> Categories</div>
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Category</label>
+          <select name="category" class="form-select" required>
+            <% categories.forEach(c => { %>
+              <option value="<%= c._id %>"><%= c.name %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Subcategory</label>
+          <select name="subcategory" class="form-select" required>
+            <% subcategories.forEach(s => { %>
+              <option value="<%= s._id %>"><%= s.name %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Collections</label>
+          <select name="collections" class="form-select" multiple>
+            <% collections.forEach(col => { %>
+              <option value="<%= col._id %>"><%= col.name %></option>
+            <% }) %>
+          </select>
+        </div>
+      </div>
+
+      <!-- Pricing -->
+      <div class="section-title"><i class="bi bi-cash-stack"></i> Pricing & Inventory</div>
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Regular Price</label>
+          <input type="number" name="regularPrice" class="form-control" placeholder="2000" required>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Sale Price</label>
+          <input type="number" name="salePrice" class="form-control" placeholder="1500 (optional)">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Quantity</label>
+          <input type="number" name="quantity" class="form-control" placeholder="Available stock">
+        </div>
+      </div>
+
+      <!-- Images -->
+      <div class="section-title"><i class="bi bi-images"></i> Product Images</div>
+      <div class="mb-4">
+        <div id="dropArea" class="upload-box" onclick="document.getElementById('productImage').click()">
+          <i class="bi bi-cloud-arrow-up display-4" style="color: var(--accent);"></i>
+          <p class="fw-semibold mt-2" style="color: var(--dark);">Drag & Drop images here or click to browse</p>
+          <input type="file" id="productImage" name="productImage" class="d-none" multiple required>
+          <button type="button" class="btn btn-outline-primary mt-2" onclick="document.getElementById('productImage').click()">Browse Files</button>
+        </div>
+        <div id="preview" class="d-flex flex-wrap gap-3 mt-3"></div>
+      </div>
+
+      <!-- Submit -->
+      <div class="text-center">
+        <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill">
+          <i class="bi bi-check-circle me-2"></i> Save Product
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
+<%- include('../../partials/admin_footer', { pageTitle: 'Add Product' }) %>

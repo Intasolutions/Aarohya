@@ -1,0 +1,323 @@
+<%- include('../partials/header') %>
+
+<!-- Hero Section -->
+<section class="hero-section">
+  <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="4000">
+    <!-- Carousel Indicators -->
+    <div class="carousel-indicators">
+      <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"></button>
+      <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
+      <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2"></button>
+    </div>
+
+    <!-- Carousel Items -->
+    <div class="carousel-inner">
+      <!-- Slide 1 -->
+      <div class="carousel-item active">
+        <div class="hero-content d-flex align-items-center justify-content-between px-5">
+          <div class="hero-text">
+            <h2>Up to <span>10% off</span> Voucher</h2>
+            <a href="#" class="btn hero-btn">Shop Now →</a>
+          </div>
+          <div class="hero-img">
+            <img src="/public/images/hero/her-1.png" alt="Gold Rings" class="img-fluid rounded">
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 2 -->
+      <div class="carousel-item">
+        <div class="hero-content d-flex align-items-center justify-content-between px-5">
+          <div class="hero-text">
+            <h2>Exclusive <span>Summer Sale</span></h2>
+            <a href="#" class="btn hero-btn">Shop Collection →</a>
+          </div>
+          <div class="hero-img">
+            <img src="/public/images/hero/hero-2.png" alt="Summer Sale" class="img-fluid rounded">
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 3 -->
+      <div class="carousel-item">
+        <div class="hero-content d-flex align-items-center justify-content-between px-5">
+          <div class="hero-text">
+            <h2>New Arrivals <span>2025</span></h2>
+            <a href="#" class="btn hero-btn">Explore Now →</a>
+          </div>
+          <div class="hero-img">
+            <img src="/public/images/hero/her-1.png" alt="New Arrivals" class="img-fluid rounded">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- Browse By Category -->
+<section class="container my-5">
+  <!-- Section Title -->
+  <div class="d-flex align-items-center mb-2">
+    <div style="width:5px; height:20px; background:var(--accent); margin-right:8px;"></div>
+    <span class="fw-semibold text-uppercase small text-muted">Categories</span>
+  </div>
+  <h4 class="fw-bold mb-4">Browse By Category</h4>
+
+  <!-- Scrollable Wrapper -->
+<div class="category-wrapper">
+  <button class="scroll-btn left" onclick="scrollCategories(-1)">&#10094;</button>
+
+  <div class="category-scroll" id="categoryScroll">
+    <% for(let i=0; i<15; i++){ %>
+      <a href="#" class="category-card">
+        <div class="category-img">
+          <img src="/public/images/hero/test.jpg" alt="Rings">
+        </div>
+        <h5>Rings</h5>
+      </a>
+    <% } %>
+  </div>
+
+  <button class="scroll-btn right" onclick="scrollCategories(1)">&#10095;</button>
+</div>
+
+
+
+</section>
+
+
+
+<!-- Best Selling Products -->
+<section class="container my-5">
+  <div class="d-flex align-items-center justify-content-between mb-2">
+    <div class="d-flex align-items-center">
+      <div style="width:5px; height:20px; background:var(--accent); margin-right:8px;"></div>
+      <span class="fw-semibold text-uppercase small text-muted">This Month</span>
+    </div>
+   <button class="btn view-all-btn">View All</button>
+
+  </div>
+  <h4 class="fw-bold mb-4">Best Selling Products</h4>
+
+  <div class="row g-4">
+    <% for(let i=0; i<4; i++){ %>
+      <div class="col-md-3 col-sm-6">
+        <div class="product-card">
+          <div class="product-img-wrapper">
+            <img src="/public/images/hero/test1.jpg" class="product-img" alt="Product">
+            <div class="product-actions">
+              <button><i class="far fa-heart"></i></button>
+              <button><i class="far fa-eye"></i></button>
+            </div>
+          </div>
+          <h6 class="mt-3">Lorem ipsum</h6>
+          <div class="price-wrap">
+            <span class="price">$260</span>
+            <span class="old-price">$360</span>
+          </div>
+          <div class="rating mt-2">
+            <i class="fa fa-star"></i>
+            <i class="fa fa-star"></i>
+            <i class="fa fa-star"></i>
+            <i class="fa fa-star"></i>
+            <i class="fa fa-star-half-alt"></i>
+            <small class="text-muted">(65)</small>
+          </div>
+        </div>
+      </div>
+    <% } %>
+  </div>
+</section>
+
+<section class="offer-section container py-5">
+  <div class="row align-items-center">
+    <!-- Left Content -->
+    <div class="col-lg-6 text-center text-lg-start">
+      <p class="text-uppercase fw-semibold mb-2" style="color: var(--dark);">Trending Offer</p>
+      <h2 class="fw-bold mb-4" style="color: var(--dark);">Buy your<br>favourite bangles</h2>
+
+      <!-- Countdown -->
+      <div class="d-flex justify-content-center justify-content-lg-start gap-3 mb-4" id="countdown">
+        <div class="time-box shadow-sm">
+          <span id="days">03</span>
+          <small>Days</small>
+        </div>
+        <div class="time-box shadow-sm">
+          <span id="hours">23</span>
+          <small>Hours</small>
+        </div>
+        <div class="time-box shadow-sm">
+          <span id="minutes">59</span>
+          <small>Minutes</small>
+        </div>
+        <div class="time-box shadow-sm">
+          <span id="seconds">35</span>
+          <small>Seconds</small>
+        </div>
+      </div>
+
+      <a href="#" class="btn btn-dark px-4 py-2 rounded-pill fw-semibold">Buy Now!</a>
+    </div>
+
+    <!-- Right Image -->
+    <div class="col-lg-6 text-center">
+      <img src="/public/images/hero/her-1.png" alt="Bangles" class="img-fluid product-img">
+    </div>
+  </div>
+</section>
+
+
+<section class="container my-5">
+  <div class="d-flex align-items-center justify-content-between mb-2">
+    <div class="d-flex align-items-center">
+      <div style="width:5px; height:20px; background:var(--accent); margin-right:8px;"></div>
+      <span class="fw-semibold text-uppercase small text-muted">Our Products</span>
+    </div>
+    <button class="view-all-btn">View All</button>
+  </div>
+
+  <h4 class="fw-bold mb-4">Explore Our Products</h4>
+
+  <div class="product-scroll-wrapper">
+    <!-- Navigation Buttons -->
+<!-- <div class="nav-controls">
+  <button type="button" class="nav-btn prev-btn"><i class="fa fa-arrow-left"></i></button>
+  <button type="button" class="nav-btn next-btn"><i class="fa fa-arrow-right"></i></button>
+</div> -->
+
+
+    <!-- Scrollable row -->
+    <div class="product-scroll">
+      <% for(let i=0; i<8; i++){ %>
+        <div class="product-card">
+          <div class="product-img-wrapper">
+            <img src="/public/images/hero/test1.jpg" class="product-img" alt="Product">
+            <div class="product-actions">
+              <button><i class="far fa-heart"></i></button>
+              <button><i class="far fa-eye"></i></button>
+            </div>
+          </div>
+          <h6 class="mt-3">Lorem ipsum</h6>
+          <div class="price-wrap">
+            <span class="price">$260</span>
+            <span class="old-price">$360</span>
+          </div>
+          <div class="rating mt-2">
+            <i class="fa fa-star"></i>
+            <i class="fa fa-star"></i>
+            <i class="fa fa-star"></i>
+            <i class="fa fa-star"></i>
+            <i class="fa fa-star-half-alt"></i>
+            <small class="text-muted">(65)</small>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<!-- 🔥 New Arrival Section -->
+<section class="newarrival-section container">
+  <!-- Header -->
+  <div class="newarrival-header">
+  <div class="d-flex align-items-center mb-3">
+      <div style="width:5px; height:20px; background:var(--accent); margin-right:8px;"></div>
+      <span class="fw-semibold text-uppercase small text-muted">Features</span>
+    </div>
+    <h2 class="newarrival-title">New Arrival</h2>
+  </div>
+
+  <!-- Grid Layout -->
+  <div class="newarrival-grid">
+    <!-- Left Big Image -->
+    <div class="newarrival-item newarrival-big">
+      <img src="public/images/hero/test1.jpg" alt="Bangle">
+      <a href="#" class="newarrival-btn">Shop Now</a>
+    </div>
+
+    <!-- Right Top Image -->
+    <div class="newarrival-item newarrival-collection">
+      <img src="your-image2.jpg" alt="Women’s Collection">
+      <div class="newarrival-overlay">
+        <h4>Women’s Collections</h4>
+        <p>Featured woman collections that give you another vibe.</p>
+        <a href="#" class="newarrival-btn dark">Shop Now</a>
+      </div>
+    </div>
+
+    <!-- Right Bottom Small Items -->
+    <div class="newarrival-item newarrival-small">
+      <img src="your-image3.jpg" alt="Necklace">
+      <div class="newarrival-text">
+        <h5>Necklace</h5>
+        <p>Lorem ipsum</p>
+        <a href="#" class="newarrival-btn">Shop Now</a>
+      </div>
+    </div>
+
+    <!-- <div class="newarrival-item newarrival-small">
+      <img src="your-image4.jpg" alt="Necklace">
+      <div class="newarrival-text">
+        <h5>Choker</h5>
+        <p>Lorem ipsum</p>
+        <a href="#" class="newarrival-btn">Shop Now</a>
+      </div>
+    </div> -->
+  </div>
+</section>
+
+
+<!-- 🌟 Service Features Section -->
+<section class="service-features container py-5">
+  <div class="row text-center g-4">
+    
+    <!-- Feature 1 -->
+    <div class="col-6 col-md-3">
+      <div class="feature-box">
+        <div class="icon-wrap">
+          <i class="bi bi-truck"></i>
+        </div>
+        <h6>Free Shipping</h6>
+        <p>On all orders above ₹999</p>
+      </div>
+    </div>
+
+    <!-- Feature 2 -->
+    <div class="col-6 col-md-3">
+      <div class="feature-box">
+        <div class="icon-wrap">
+          <i class="bi bi-shield-check"></i>
+        </div>
+        <h6>Secure Payment</h6>
+        <p>100% safe & protected</p>
+      </div>
+    </div>
+
+    <!-- Feature 3 -->
+    <div class="col-6 col-md-3">
+      <div class="feature-box">
+        <div class="icon-wrap">
+          <i class="bi bi-arrow-repeat"></i>
+        </div>
+        <h6>Easy Returns</h6>
+        <p>7-day hassle-free returns</p>
+      </div>
+    </div>
+
+    <!-- Feature 4 -->
+    <div class="col-6 col-md-3">
+      <div class="feature-box">
+        <div class="icon-wrap">
+          <i class="bi bi-headset"></i>
+        </div>
+        <h6>24/7 Support</h6>
+        <p>Dedicated help center</p>
+      </div>
+    </div>
+    
+  </div>
+</section>
+
+
+<%- include('../partials/footer') %>

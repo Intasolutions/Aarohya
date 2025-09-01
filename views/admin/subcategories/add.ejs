@@ -1,0 +1,68 @@
+<%- include('../../partials/admin_head', { pageTitle: 'Add SubCategory' }) %>
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 90vh; background: var(--light);">
+  <div class="card shadow-lg p-4 rounded-4 border-0" style="max-width: 600px; width: 100%; background: #fff;">
+    
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+           style="width: 60px; height: 60px; background: var(--primary); color: var(--dark);">
+        <i class="bi bi-plus-circle fs-3"></i>
+      </div>
+      <h3 class="fw-bold" style="color: var(--dark);">Add SubCategory</h3>
+      <p class="text-muted mb-0">Fill out the details below to create a new subcategory.</p>
+    </div>
+
+    <!-- Form -->
+    <form action="/admin/subcategories/add" method="POST">
+      
+      <!-- SubCategory Name -->
+      <div class="mb-3">
+        <label for="name" class="form-label fw-semibold" style="color: var(--dark);">
+          <i class="bi bi-tag me-2 text-accent"></i> SubCategory Name
+        </label>
+        <input type="text" id="name" name="name" 
+               class="form-control rounded-3 border-1 shadow-sm" 
+               placeholder="Enter subcategory name" required />
+      </div>
+
+      <!-- Slug -->
+      <div class="mb-3">
+        <label for="slug" class="form-label fw-semibold" style="color: var(--dark);">
+          <i class="bi bi-link-45deg me-2 text-accent"></i> Slug
+        </label>
+        <input type="text" id="slug" name="slug" 
+               class="form-control rounded-3 border-1 shadow-sm" 
+               placeholder="Leave empty to auto-generate" />
+      </div>
+
+      <!-- Category Dropdown -->
+      <div class="mb-4">
+        <label for="category" class="form-label fw-semibold" style="color: var(--dark);">
+          <i class="bi bi-folder2-open me-2 text-accent"></i> Parent Category
+        </label>
+        <select id="category" name="category" 
+                class="form-select rounded-3 border-1 shadow-sm" required>
+          <% categories.forEach(c => { %>
+            <option value="<%= c._id %>"><%= c.name %></option>
+          <% }) %>
+        </select>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn w-100 py-2 fw-semibold rounded-3"
+                style="background: var(--accent); color: #fff; border: none;">
+          <i class="bi bi-check-circle me-2"></i> Save
+        </button>
+        <a href="/admin/subcategories" 
+           class="btn w-100 py-2 fw-semibold rounded-3"
+           style="background: var(--secondary); color: #fff; border: none;">
+          <i class="bi bi-arrow-left-circle me-2"></i> Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../../partials/admin_footer') %>

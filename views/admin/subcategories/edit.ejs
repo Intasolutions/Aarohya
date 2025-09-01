@@ -1,0 +1,33 @@
+<%- include('../../partials/admin_head', { pageTitle: 'Edit SubCategory' }) %>
+
+<div class="card shadow-lg p-4 rounded-3 mx-auto" style="max-width: 600px;">
+  <h2 class="mb-4 text-center">Edit SubCategory</h2>
+
+  <form action="/admin/subcategories/edit/<%= subcategory._id %>" method="POST">
+
+    <div class="mb-3">
+      <label for="name" class="form-label">SubCategory Name</label>
+      <input type="text" id="name" name="name" value="<%= subcategory.name %>" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+      <label for="slug" class="form-label">Slug</label>
+      <input type="text" id="slug" name="slug" value="<%= subcategory.slug %>" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+      <label for="category" class="form-label">Category</label>
+      <select id="category" name="category" class="form-select" required>
+        <% categories.forEach(c => { %>
+          <option value="<%= c._id %>" <%= subcategory.category.toString() === c._id.toString() ? "selected" : "" %>>
+            <%= c.name %>
+          </option>
+        <% }) %>
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-success w-100">Update</button>
+  </form>
+</div>
+
+<%- include('../../partials/admin_footer') %>
