@@ -33,24 +33,6 @@
       </select>
     </div>
 
-    <div class="mb-3">
-      <label for="collections" class="form-label">Collections</label>
-      <select id="collections" name="collections" class="form-select" multiple>
-        <% collections.forEach(col => { %>
-          <option value="<%= col._id %>" <%= product.collections.includes(col._id) ? 'selected' : '' %>><%= col.name %></option>
-        <% }) %>
-      </select>
-    </div>
-
-    <div class="mb-3">
-      <label for="brandId" class="form-label">Brand</label>
-      <select id="brandId" name="brandId" class="form-select">
-        <% brands.forEach(b => { %>
-          <option value="<%= b._id %>" <%= product.brandId == b._id ? 'selected' : '' %>><%= b.brandName %></option>
-        <% }) %>
-      </select>
-    </div>
-
     <div class="row">
       <div class="col-md-4 mb-3">
         <label for="regularPrice" class="form-label">Regular Price</label>
@@ -73,7 +55,7 @@
         <p class="mb-2">Current Images:</p>
         <div class="d-flex flex-wrap gap-2">
           <% product.productImage.forEach(img => { %>
-            <img src="/public/uploads/<%= img %>" alt="product image" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;" />
+            <img src="/public/<%= img %>" alt="product image" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;" />
           <% }) %>
         </div>
       </div>

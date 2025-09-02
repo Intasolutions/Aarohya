@@ -1,4 +1,7 @@
 const router = require('express').Router();
-router.get('/', (req,res) => res.render('shop/home'));
-router.get('/products', (req,res) => res.render('shop/products_details'));
+const homeController = require('../controllers/shop/homeController');
+const productController = require('../controllers/shop/productController')
+
+router.get('/', homeController.getHome);
+router.get('/product/:id',productController.getproductDetails );
 module.exports = router;
