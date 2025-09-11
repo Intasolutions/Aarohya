@@ -32,6 +32,19 @@
     </p>
 
     <p class="stock"><%= product.quantity > 0 ? "In Stock " : "Out of Stock ❌" %></p>
+    <!-- Color Variants -->
+<div class="color-variants mt-3">
+  <label><strong>Available Colors:</strong></label>
+  <div class="d-flex gap-2">
+    <% variants.forEach(v => { %>
+      <a href="/product/<%= v._id %>" 
+         class="color-swatch" 
+         style="background: <%= v.color %>" 
+         title="<%= v.color %>">
+      </a>
+    <% }) %>
+  </div>
+</div>
 
     <!-- Quantity -->
     <div class="quantity">
@@ -58,7 +71,6 @@
     <div class="tab-content hidden" id="details">
       Category: <%= product.category ? product.category.name : 'N/A' %><br>
       SubCategory: <%= product.subcategory ? product.subcategory.name : 'N/A' %><br>
-      Quantity Available: <%= product.quantity %>
     </div>
     <div class="tab-content hidden" id="reviews">
       <% if(product.reviews && product.reviews.length > 0){ %>
@@ -71,7 +83,6 @@
     </div>
   </div>
 </section>
-
 
 <section class="related container">
   <h2>Related Products</h2>
@@ -112,6 +123,5 @@
     <% } %>
   </div>
 </section>
-
 
 <%- include('../partials/footer') %>

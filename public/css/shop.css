@@ -948,3 +948,16 @@ body {
   transform: translateY(-5px);
 }
 
+.color-swatch {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.color-swatch:hover {
+  border-color: var(--primary);
+  transform: scale(1.1);
+}

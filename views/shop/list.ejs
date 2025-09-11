@@ -1,0 +1,99 @@
+<%- include('../partials/header') %>
+
+
+<div class="filters mb-4">
+  <form method="GET" class="d-flex gap-3 flex-wrap">
+
+    <!-- Category Filter -->
+    <select name="category" class="form-select">
+      <option value="">All Categories</option>
+      <% categories.forEach(c => { %>
+        <option value="<%= c._id %>" <%= filters.category === c._id.toString() ? "selected" : "" %>>
+          <%= c.name %>
+        </option>
+      <% }) %>
+    </select>
+
+    <!-- Subcategory Filter -->
+    <select name="subcategory" class="form-select">
+      <option value="">All Subcategories</option>
+      <% subcategories.forEach(s => { %>
+        <option value="<%= s._id %>" <%= filters.subcategory === s._id.toString() ? "selected" : "" %>>
+          <%= s.name %>
+        </option>
+      <% }) %>
+    </select>
+
+    <!-- Color Filter -->
+    <select name="color" class="form-select">
+      <option value="">All Colors</option>
+      <option value="Silver" <%= filters.color === "Silver" ? "selected" : "" %>>Silver</option>
+      <option value="Gold" <%= filters.color === "Gold" ? "selected" : "" %>>Gold</option>
+      <option value="Rose Gold" <%= filters.color === "Rose Gold" ? "selected" : "" %>>Rose Gold</option>
+    </select>
+
+    <!-- Price Filter -->
+    <input type="number" name="minPrice" placeholder="Min Price" value="<%= filters.minPrice || '' %>" class="form-control" />
+    <input type="number" name="maxPrice" placeholder="Max Price" value="<%= filters.maxPrice || '' %>" class="form-control" />
+
+
+    <!-- Sorting -->
+    <select name="sort" class="form-select">
+      <option value="newest" <%= filters.sort === "newest" ? "selected" : "" %>>Newest</option>
+      <option value="oldest" <%= filters.sort === "oldest" ? "selected" : "" %>>Oldest</option>
+      <option value="priceAsc" <%= filters.sort === "priceAsc" ? "selected" : "" %>>Price: Low to High</option>
+      <option value="priceDesc" <%= filters.sort === "priceDesc" ? "selected" : "" %>>Price: High to Low</option>
+    </select>
+
+    <button type="submit" class="btn btn-primary">Apply</button>
+  </form>
+</div>
+
+<!-- Product Grid -->
+<div class="row">
+  <% products.forEach(product => { %>
+    <div class="col-md-3 col-sm-6">
+      <div class="product-card">
+        <div class="product-img-wrapper">
+          <img src="/public/<%= product.productImage[0] %>" class="product-img" alt="Product">
+          <div class="product-actions">
+            <button><i class="far fa-heart"></i></button>
+            <a href="/product/<%= product._id %>" class="product-action-btn">
+              <i class="far fa-eye"></i>
+            </a>
+          </div>
+        </div>
+        <h6 class="mt-3"><%= product.productName %></h6>
+        <div class="price-wrap">
+          <span class="price">₹<%= product.salePrice %></span>
+          <% if (product.regularPrice >= product.salePrice) { %>
+            <span class="old-price">₹<%= product.regularPrice %></span>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  <% }) %>
+</div>
+<script>
+  const minPriceInput = document.getElementById("minPrice");
+  const maxPriceInput = document.getElementById("maxPrice");
+  const minPriceLabel = document.getElementById("minPriceLabel");
+  const maxPriceLabel = document.getElementById("maxPriceLabel");
+
+  minPriceInput.addEventListener("input", () => {
+    minPriceLabel.innerText = minPriceInput.value;
+    if (parseInt(minPriceInput.value) > parseInt(maxPriceInput.value)) {
+      maxPriceInput.value = minPriceInput.value;
+      maxPriceLabel.innerText = maxPriceInput.value;
+    }
+  });
+
+  maxPriceInput.addEventListener("input", () => {
+    maxPriceLabel.innerText = maxPriceInput.value;
+    if (parseInt(maxPriceInput.value) < parseInt(minPriceInput.value)) {
+      minPriceInput.value = maxPriceInput.value;
+      minPriceLabel.innerText = minPriceInput.value;
+    }
+  });
+</script>
+<%- include('../partials/footer') %>

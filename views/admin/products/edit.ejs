@@ -32,6 +32,22 @@
         <% }) %>
       </select>
     </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Product Number</label>
+          <input type="text" name="productNumber" class="form-control" value="<%= product.productNumber %>" >
+        </div>
+        <div class="col-md-6 mb-3">
+  <label for="color" class="form-label">Color</label>
+  <select class="form-control" id="color" name="color" required>
+    <option value="Silver" <%= product.color === "Silver" ? "selected" : "" %>>Silver</option>
+    <option value="Gold" <%= product.color === "Gold" ? "selected" : "" %>>Gold</option>
+    <option value="Rose Gold" <%= product.color === "Rose Gold" ? "selected" : "" %>>Rose Gold</option>
+  </select>
+</div>
+
+    </div>
+
 
     <div class="row">
       <div class="col-md-4 mb-3">

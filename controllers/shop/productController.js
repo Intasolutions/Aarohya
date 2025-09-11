@@ -9,16 +9,33 @@ const getproductDetails = async (req, res) => {
     if (!product) {
       return res.status(404).send("Product not found");
     }
+
     const relatedProducts = await Product.find({
       category: product.category._id,
-      _id: { $ne: product._id }, 
-      isBlocked: false
-    }).limit(4);
+      _id: { $ne: product._id },
+      isBlocked: false,
+    })
+      .limit(4)
+      .lean();
 
-    res.render("shop/productsDetails", { product ,relatedProducts});
+    let variants = [];
+
+    if (product.productNumber && product.productNumber.trim() !== "") {
+      variants = await Product.find({
+        productNumber: product.productNumber,
+        isBlocked: false,
+      }).lean();
+    }
+
+    res.render("shop/productsDetails", {
+      product,
+      relatedProducts,
+      variants,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).send("Server Error");
   }
 };
+
 module.exports = { getproductDetails };

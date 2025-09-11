@@ -8,7 +8,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (mainImage && thumbs.length) {
     thumbs.forEach(img => {
       img.addEventListener("click", () => {
-        console.log("Thumbnail clicked:", img.src); // debug
         mainImage.src = img.src; // change main image
         thumbs.forEach(t => t.classList.remove("active"));
         img.classList.add("active");
