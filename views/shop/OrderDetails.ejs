@@ -1,0 +1,347 @@
+<%- include('../partials/header') %>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+  :root {
+    --primary: #C5A880;
+    --secondary: #7B5E40;
+    --accent: #E0D4B7;
+    --light: #F8F5F0;
+    --dark: #2C1F1A;
+    --bg: #FFF9F3;
+    --shadow: rgba(197, 168, 128, 0.15);
+    --border: #e2d5c0;
+  }
+
+  body {
+    background: var(--bg);
+    font-family: "Segoe UI", sans-serif;
+    color: var(--dark);
+    margin: 0;
+    padding: 0;
+  }
+
+  .ordersPage {
+    max-width: 1300px;
+    margin: 40px auto;
+    padding: 20px;
+    display: flex;
+    gap: 24px;
+  }
+
+  /* Sidebar */
+  .ordersPage__sidebar {
+    width: 280px;
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 6px 20px var(--shadow);
+  }
+
+  .ordersPage__user {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+  }
+
+  .ordersPage__user img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--accent);
+  }
+
+  .ordersPage__links {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ordersPage__links a {
+    text-decoration: none;
+    color: var(--dark);
+    padding: 10px 14px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+  }
+
+  .ordersPage__links a:hover,
+  .ordersPage__links a.active {
+    background: var(--primary);
+    color: #fff;
+  }
+
+  /* Main Content */
+  .ordersPage__content {
+    flex: 1;
+  }
+
+  .ordersPage__content h2 {
+    margin: 0 0 20px;
+    font-size: 1.5rem;
+    color: var(--secondary);
+  }
+
+  /* Filters */
+  .ordersPage__filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .ordersPage__filters button {
+    border: 1px solid var(--border);
+    background: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+  }
+
+  .ordersPage__filters button span {
+    font-weight: bold;
+    margin-left: 4px;
+    color: var(--secondary);
+  }
+
+  .ordersPage__filters button.active,
+  .ordersPage__filters button:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  .ordersPage__filters button.active span,
+  .ordersPage__filters button:hover span {
+    color: #fff;
+  }
+
+  /* Order Card */
+  .orderCard {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px var(--shadow);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .orderCard__header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+    align-items: center;
+  }
+
+  /* Status Badges */
+  .status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #fff;
+  }
+
+  .status-badge.inprogress {
+    background: var(--primary);
+  }
+
+  .status-badge.delivered {
+    background: #4CAF50;
+  }
+
+  .status-badge.cancelled {
+    background: #E53935;
+  }
+
+  .orderCard__items {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .orderItem {
+    display: flex;
+    gap: 14px;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+  }
+
+  .orderItem img {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: var(--accent);
+  }
+
+  .orderItem__details {
+    flex: 1;
+  }
+
+  .orderItem__details h4 {
+    margin: 0 0 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--dark);
+  }
+
+  .orderItem__details p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--secondary);
+  }
+
+  .orderItem__price {
+    font-weight: bold;
+    color: var(--secondary);
+    font-size: 1rem;
+  }
+
+  .orderCard__footer {
+    margin-top: 16px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .orderCard__footer button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--secondary);
+  }
+
+  .orderCard__footer button:hover {
+    color: var(--primary);
+  }
+
+  @media (max-width: 900px) {
+    .ordersPage {
+      flex-direction: column;
+    }
+    .ordersPage__sidebar {
+      width: 100%;
+    }
+  }
+</style>
+
+<main>
+  <div class="ordersPage">
+
+
+        <aside class="ordersPage__sidebar">
+        <div class="ordersPage__user">
+            <img src="public/images/profile/avatar.jpg" alt="User">
+            <div>
+            <h4>Akash A</h4>
+            <p style="font-size: 0.85rem; color: var(--secondary);">Premium Member</p>
+            </div>
+        </div>
+        <nav class="ordersPage__links">
+            <a href="#" class="active"><i class="fas fa-box"></i> Order History</a>
+            <a href="#"><i class="fas fa-heart"></i> Wishlist</a>
+            <a href="#"><i class="fas fa-user-cog"></i> Account Settings</a>
+        </nav>
+        </aside>
+
+    <!-- Main Content -->
+    <section class="ordersPage__content">
+      <h2>My Orders</h2>
+
+      <!-- Filters -->
+      <div class="ordersPage__filters">
+        <button class="active">All Orders <span>(18)</span></button>
+        <button>In Progress <span>(2)</span></button>
+        <button>Delivered <span>(15)</span></button>
+        <button>Cancelled <span>(1)</span></button>
+      </div>
+
+      <!-- Order Card - In Progress -->
+      <div class="orderCard">
+        <div class="orderCard__header">
+          <span>Order #266215 • 15 Sep 2025</span>
+          <span><span class="status-badge inprogress">In Progress</span></span>
+        </div>
+
+        <div class="orderCard__items">
+          <div class="orderItem">
+            <img src="public/images/products/product1.jpg" alt="Product">
+            <div class="orderItem__details">
+              <h4>Oversize Denim Jacket</h4>
+              <p>Size: M • Color: Blue</p>
+            </div>
+            <div class="orderItem__price">₹3700</div>
+          </div>
+        </div>
+
+        <div class="orderCard__footer">
+          <button><i class="fas fa-info-circle"></i></button>
+          <button><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+
+      <!-- Order Card - Delivered -->
+      <div class="orderCard">
+        <div class="orderCard__header">
+          <span>Order #258841 • 12 Sep 2025</span>
+          <span><span class="status-badge delivered">Delivered</span></span>
+        </div>
+
+        <div class="orderCard__items">
+          <div class="orderItem">
+            <img src="public/images/products/product2.jpg" alt="Product">
+            <div class="orderItem__details">
+              <h4>Casual Sweater with Lace Inserts</h4>
+              <p>Size: S • Color: White</p>
+            </div>
+            <div class="orderItem__price">₹3000</div>
+          </div>
+        </div>
+
+        <div class="orderCard__footer">
+          <button><i class="fas fa-info-circle"></i></button>
+          <button><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+
+      <!-- Order Card - Cancelled -->
+      <div class="orderCard">
+        <div class="orderCard__header">
+          <span>Order #258700 • 10 Sep 2025</span>
+          <span><span class="status-badge cancelled">Cancelled</span></span>
+        </div>
+
+        <div class="orderCard__items">
+          <div class="orderItem">
+            <img src="public/images/products/product3.jpg" alt="Product">
+            <div class="orderItem__details">
+              <h4>Classic Cotton Shirt</h4>
+              <p>Size: L • Color: Grey</p>
+            </div>
+            <div class="orderItem__price">₹1500</div>
+          </div>
+        </div>
+
+        <div class="orderCard__footer">
+          <button><i class="fas fa-info-circle"></i></button>
+          <button><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+</main>
+
+<%- include('../partials/footer') %>

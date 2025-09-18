@@ -3,247 +3,299 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
 <style>
+  :root {
+    --primary: #C5A880;
+    --secondary: #7B5E40;
+    --accent: #E0D4B7;
+    --light: #F8F5F0;
+    --dark: #2C1F1A;
+    --bg: #FFF9F3;
 
-
-
-
-  .profilePage__container {
-    max-width: 700px;
-    margin: 60px auto;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 6px 18px var(--shadow);
-    overflow: hidden;
-    padding: 0;
-    position: relative;
+    --hover-primary: #D1B37F;
+    --hover-accent: #A37B52;
+    --border: #BFA67D;
+    --shadow: rgba(197, 168, 128, 0.2);
+    --gradient-start: #C5A880;
+    --gradient-end: #7B5E40;
   }
 
-  .profilePage__header {
-    background: var(--primary);
-    color: white;
-    padding: 50px 20px;
-    text-align: center;
-    position: relative;
-  }
-
-  .profilePage__header img {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    border: 5px solid var(--light);
-    background: var(--light);
-    object-fit: cover;
-    margin-top: -60px;
-    box-shadow: 0 4px 12px var(--shadow);
-    transition: transform var(--transition);
-  }
-
-  .profilePage__header img:hover {
-    transform: scale(1.05);
-  }
-
-  .profilePage__header h2 {
-    font-size: 2.2rem;
-    margin: 12px 0 4px;
-    font-weight: 700;
-  }
-
-  .profilePage__header p {
-    font-size: 1rem;
-    opacity: 0.9;
-  }
-
-  .profilePage__form {
-    padding: 40px 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
-  }
-
-  .profilePage__form-group {
-    display: flex;
-    flex-direction: column;
-    position: relative;
-  }
-
-  .profilePage__form-group label {
-    font-weight: 500;
-    font-size: 0.95rem;
+  body {
+    background: var(--bg);
+    font-family: "Segoe UI", sans-serif;
     color: var(--dark);
-    margin-bottom: 8px;
+    overflow-x: hidden;
   }
 
-  .profilePage__form-group input {
-    border: none;
-    border-bottom: 2px solid var(--border);
+  /* Layout */
+  .profilePage__layout {
+    display: flex;
+    max-width: 1200px;
+    margin: 40px auto;
+    gap: 20px;
+    opacity: 0;
+    animation: fadeReveal 1.2s ease forwards;
+  }
+
+  /* Sidebar */
+  .profilePage__sidebar {
+    width: 280px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 18px var(--shadow);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+
+    /* Animation */
+    transform: translateX(-50px) scale(0.95);
+    opacity: 0;
+    animation: slideGlowLeft 1s ease forwards;
+    animation-delay: 0.2s;
+  }
+
+  .profilePage__sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 16px;
+  }
+
+  .profilePage__sidebar-user img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--accent);
+    object-fit: cover;
+    box-shadow: 0 4px 10px var(--shadow);
+    animation: pulseGlow 2.5s infinite ease-in-out;
+  }
+
+  .profilePage__sidebar-user h4 {
+    margin: 0;
     font-size: 1.1rem;
-    padding: 10px 8px;
-    background: transparent;
-    transition: border-color var(--transition);
+    font-weight: 600;
+    color: var(--dark);
   }
 
-  .profilePage__form-group input:focus {
-    border-color: var(--primary);
+  .profilePage__sidebar-section h5 {
+    font-size: 0.95rem;
+    color: var(--secondary);
+    margin-bottom: 10px;
+  }
+
+  .profilePage__links {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .profilePage__links a {
+    text-decoration: none;
+    color: var(--dark);
+    font-size: 0.95rem;
+    padding: 8px 12px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.3s ease, color 0.3s ease, transform 0.2s ease;
+  }
+
+  .profilePage__links a:hover,
+  .profilePage__links a.active {
+    background: var(--primary);
+    color: #fff;
+    transform: translateX(5px);
+  }
+
+  /* Main Content */
+  .profilePage__content {
+    flex: 1;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 18px var(--shadow);
+    padding: 30px;
+
+    /* Animation */
+    transform: translateY(40px) scale(0.98);
+    opacity: 0;
+    animation: slideGlowUp 1.2s ease forwards;
+    animation-delay: 0.4s;
+  }
+
+  .profilePage__content h2 {
+    margin-bottom: 15px;
+    color: var(--secondary);
+  }
+
+  /* Form */
+  .profilePage__form label,
+  .profilePage__form input,
+  .profilePage__form textarea,
+  .profilePage__save-button {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeStaggerUp 0.8s ease forwards;
+  }
+
+  .profilePage__form label:nth-of-type(1),
+  .profilePage__form input:nth-of-type(1) { animation-delay: 0.6s; }
+  .profilePage__form label:nth-of-type(2),
+  .profilePage__form input:nth-of-type(2) { animation-delay: 0.8s; }
+  .profilePage__form label:nth-of-type(3),
+  .profilePage__form input:nth-of-type(3) { animation-delay: 1s; }
+  .profilePage__form label:nth-of-type(4),
+  .profilePage__form textarea { animation-delay: 1.2s; }
+  .profilePage__save-button { animation-delay: 1.4s; }
+
+  .profilePage__form input,
+  .profilePage__form textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    margin-bottom: 18px;
     outline: none;
+    transition: border 0.2s, background 0.2s, box-shadow 0.2s;
+    background: var(--light);
+  }
+
+  .profilePage__form input:focus,
+  .profilePage__form textarea:focus {
+    border-color: var(--primary);
+    background: #fff;
+    box-shadow: 0 0 8px var(--shadow);
+  }
+
+  .profilePage__form textarea {
+    resize: vertical;
+    min-height: 90px;
   }
 
   .profilePage__save-button {
-    background: var(--primary);
-    color: white;
-    font-weight: bold;
-    padding: 16px 24px;
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    color: #fff;
     border: none;
-    border-radius: 10px;
-    font-size: 1.2rem;
+    padding: 14px 22px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    box-shadow: 0 4px 12px var(--shadow);
-    width: 100%;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: transform 0.3s ease, opacity 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 6px 14px var(--shadow);
   }
 
   .profilePage__save-button:hover {
-    background: var(--hover-primary);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px var(--shadow);
+    opacity: 0.95;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 10px 20px var(--shadow);
   }
 
-  .profilePage__save-button:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-    box-shadow: none;
-  }
-
-  .profilePage__save-button.loading {
-    cursor: progress;
-  }
-
-  .profilePage__save-button .spinner {
-    border: 3px solid rgba(255, 255, 255, 0.5);
-    border-top: 3px solid white;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    animation: spin 0.8s linear infinite;
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  /* Custom Alert */
-  .custom-alert {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: var(--primary);
-    color: white;
-    padding: 16px 24px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px var(--shadow);
-    font-size: 1rem;
-    z-index: 999;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.4s ease, transform 0.4s ease;
-    transform: translateY(-20px);
-  }
-
-  .custom-alert.show {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateY(0);
-  }
-
-  @media (max-width: 600px) {
-    .profilePage__form {
-      padding: 30px 20px;
+  @media(max-width: 768px) {
+    .profilePage__layout {
+      flex-direction: column;
     }
-
-    .profilePage__save-button {
-      padding: 14px 18px;
-      font-size: 1.1rem;
+    .profilePage__sidebar {
+      width: 100%;
     }
+  }
+
+  /* Animations */
+  @keyframes fadeReveal {
+    to { opacity: 1; }
+  }
+
+  @keyframes slideGlowLeft {
+    to { opacity: 1; transform: translateX(0) scale(1); }
+  }
+
+  @keyframes slideGlowUp {
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  @keyframes fadeStaggerUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 8px var(--accent); }
+    50% { box-shadow: 0 0 18px var(--primary); }
   }
 </style>
 
 <main>
-  <div class="profilePage__container">
+  <div class="profilePage__layout">
 
-    <div class="profilePage__header">
-      <img src="/images/avatar.jpg" alt="User Avatar" />
-      <h2>John Doe</h2>
-      <p>john.doe@example.com</p>
-    </div>
-
-    <form class="profilePage__form" onsubmit="handleFormSubmit(event)">
-      <div class="profilePage__form-group">
-        <label for="fullName">Full Name</label>
-        <input type="text" id="fullName" name="fullName" value="John Doe" />
+    <!-- Sidebar -->
+    <aside class="profilePage__sidebar">
+      <div class="profilePage__sidebar-user">
+        <img src="public/images/profile/avatar.jpg" alt="User Avatar">
+        <div>
+          <p>Hello,</p>
+          <h4>Akash A</h4>
+        </div>
       </div>
 
-      <div class="profilePage__form-group">
-        <label for="email">Email Address</label>
-        <input type="email" id="email" name="email" value="john.doe@example.com" disabled />
+      <div class="profilePage__sidebar-section">
+        <h5><i class="fas fa-box"></i> My Orders</h5>
+        <div class="profilePage__links">
+          <a href="/Order">Orders</a>
+        </div>
       </div>
 
-      <div class="profilePage__form-group">
-        <label for="phone">Phone Number</label>
-        <input type="tel" id="phone" name="phone" value="+91 98765 43210" />
+      <div class="profilePage__sidebar-section">
+        <h5><i class="fas fa-user-cog"></i> Account Settings</h5>
+        <div class="profilePage__links">
+          <a href="#" class="active">Profile Information</a>
+          <a href="/ManageAddress">Manage Addresses</a>
+          <a href="#">PAN Card Information</a>
+        </div>
       </div>
 
-      <div class="profilePage__form-group">
-        <label for="address">Address</label>
-        <input type="text" id="address" name="address" value="123 Main Street, City, Country" />
+      <div class="profilePage__sidebar-section">
+        <h5><i class="fas fa-credit-card"></i> Payments</h5>
+        <div class="profilePage__links">
+          <a href="#">Gift Cards</a>
+          <a href="#">Saved UPI</a>
+          <a href="#">Saved Cards</a>
+        </div>
       </div>
 
-      <button type="submit" class="profilePage__save-button">
-        <i class="fas fa-check-circle"></i>
-        <span class="button-text">Save Changes</span>
-        <div class="spinner" style="display: none;"></div>
-      </button>
-    </form>
+      <div class="profilePage__sidebar-section">
+        <h5><i class="fas fa-folder-open"></i> My Stuff</h5>
+        <div class="profilePage__links">
+          <a href="/whislist">My Wishlist</a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <section class="profilePage__content">
+      <h2>Personal Information</h2>
+      <hr><br>
+      <form class="profilePage__form">
+        <label>Full Name</label>
+        <input type="text" value="Akash A">
+
+        <label>Email</label>
+        <input type="email" value="akash78988@gmail.com" disabled>
+
+        <label>Phone</label>
+        <input type="tel" value="+91 81296 86484">
+
+        <label>Address</label>
+        <textarea placeholder="Enter your address">123, Sample Street, Kochi, Kerala</textarea>
+
+        <button type="submit" class="profilePage__save-button">
+          <i class="fas fa-check-circle"></i> Save Changes
+        </button>
+      </form>
+    </section>
 
   </div>
-
-  <!-- Custom Alert Message -->
-  <div class="custom-alert" id="customAlert">Profile updated successfully!</div>
-
 </main>
-
-<script>
-  function handleFormSubmit(event) {
-    event.preventDefault();
-    const button = event.target.querySelector('.profilePage__save-button');
-    const spinner = button.querySelector('.spinner');
-    const text = button.querySelector('.button-text');
-    const alertBox = document.getElementById('customAlert');
-
-    button.classList.add('loading');
-    spinner.style.display = 'inline-block';
-    text.style.display = 'none';
-    button.disabled = true;
-
-    // Simulate form submission
-    setTimeout(() => {
-      spinner.style.display = 'none';
-      text.style.display = 'inline';
-      button.classList.remove('loading');
-      button.disabled = false;
-
-      // Show custom alert
-      alertBox.classList.add('show');
-
-      // Hide after 3s
-      setTimeout(() => {
-        alertBox.classList.remove('show');
-      }, 3000);
-
-    }, 2000);
-  }
-</script>
 
 <%- include('../partials/footer') %>

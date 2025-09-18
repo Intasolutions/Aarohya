@@ -4,7 +4,7 @@ const getHome = async (req,res) => {
 
     const products= await Product.find({isBlocked:false});
    
-    res.render('shop/profile',{products})
+    res.render('shop/home',{products})
 }
 
 module.exports ={getHome}
