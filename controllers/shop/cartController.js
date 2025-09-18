@@ -1,0 +1,11 @@
+
+
+const getCart = async (req,res)=>{
+    try {
+        res.render('shop/cart')
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+module.exports={getCart}
