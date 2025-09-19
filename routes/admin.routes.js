@@ -2,8 +2,17 @@ const router = require("express").Router();
 const productController = require("../controllers/admin/productController");
 const categoryController = require("../controllers/admin/categoryController");
 const subCategoryController = require("../controllers/admin/subCategoryController");
+const customerController = require("../controllers/admin/customerController");
+const adminController = require("../controllers/admin/adminAuthController");
 
 const upload = require("../middleware/upload");
+
+// Admin login page
+router.get("/login", adminController.getLoginPage);
+router.post("/login", adminController.postLogin);
+
+// Admin logout
+router.get("/logout", adminController.logout);
 
 // Dashboard
 router.get("/", (req, res) => res.render("admin/dashboard"));
@@ -32,5 +41,11 @@ router.post("/subcategories/add", subCategoryController.postAddSubCategory);
 router.get("/subcategories/edit/:id", subCategoryController.getEditSubCategory);
 router.post("/subcategories/edit/:id", subCategoryController.postEditSubCategory);
 router.post("/subcategories/delete/:id", subCategoryController.deleteSubCategory);
+
+
+// Customers
+router.get("/customers", customerController.getCustomers);
+router.post("/customers/toggle/:id", customerController.toggleBlock);
+router.post("/customers/delete/:id", customerController.deleteCustomer);
 
 module.exports = router;

@@ -1,0 +1,85 @@
+<%- include('../../partials/admin_head', { pageTitle: 'Customer Management' }) %>
+
+<div class="container mt-4">
+  <h2>Customer Management</h2>
+
+  <!-- Filters / Search -->
+  <div class="filters mb-3 d-flex flex-wrap gap-2">
+    <input type="text" id="searchInput" placeholder="Search by name, email, phone" class="form-control" style="max-width: 250px;">
+    
+    <select id="statusFilter" class="form-select" style="max-width: 150px;">
+      <option value="">All Status</option>
+      <option value="Active">Active</option>
+      <option value="Blocked">Blocked</option>
+    </select>
+
+    <select id="sortFilter" class="form-select" style="max-width: 200px;">
+      <option value="newest">Newest First</option>
+      <option value="oldest">Oldest First</option>
+    </select>
+
+    <button id="filterBtn" class="btn btn-primary">Apply</button>
+  </div>
+
+  <!-- Customer Table -->
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Status</th>
+          <th>Registered On</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="customerTable">
+        <% customers.forEach(customer => { %>
+          <tr>
+            <td><%= customer.name %></td>
+            <td><%= customer.email %></td>
+            <td><%= customer.phone %></td>
+            <td><%= customer.isBlocked ? 'Blocked' : 'Active' %></td>
+            <td><%= customer.createdAt.toLocaleDateString() %></td>
+            <td class="d-flex gap-1">
+              <form action="/admin/customers/toggle/<%= customer._id %>" method="POST">
+                <button type="submit" class="btn btn-sm <%= customer.isBlocked ? 'btn-success' : 'btn-warning' %>">
+                  <%= customer.isBlocked ? 'Unblock' : 'Block' %>
+                </button>
+              </form>
+
+              <form action="/admin/customers/delete/<%= customer._id %>" method="POST">
+                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  // Basic frontend filter (can enhance later)
+  document.getElementById('filterBtn').addEventListener('click', () => {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const status = document.getElementById('statusFilter').value;
+    const rows = document.querySelectorAll('#customerTable tr');
+
+    rows.forEach(row => {
+      const name = row.children[0].textContent.toLowerCase();
+      const email = row.children[1].textContent.toLowerCase();
+      const phone = row.children[2].textContent.toLowerCase();
+      const rowStatus = row.children[3].textContent;
+
+      const matchesSearch = name.includes(search) || email.includes(search) || phone.includes(search);
+      const matchesStatus = !status || status === rowStatus;
+
+      row.style.display = matchesSearch && matchesStatus ? '' : 'none';
+    });
+  });
+</script>
+
+
+<%- include('../../partials/admin_footer') %>
