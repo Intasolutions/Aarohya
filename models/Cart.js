@@ -22,7 +22,7 @@ const cartSchema = new Schema(
         },
         selectedColor: {
           type: String,
-          enum: ["Silver", "Gold", "Rose Gold"],
+          enum: ["Silver", "Gold", "Rose Gold",'none'],
           required: false,
         },
 

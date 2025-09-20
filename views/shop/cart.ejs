@@ -1,82 +1,85 @@
 <%- include('../partials/header') %>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+/>
 
 <div class="cart-container">
-
   <div class="cart-items">
     <h2>Your Shopping Cart</h2>
 
-    <% if(cart && cart.items.length > 0){ %>
-      <% cart.items.forEach(item => { %>
+    <% if(data && data.length > 0){ %> 
+      <% data.forEach(item => { %>
         <div class="cart-item">
-          <img src="/public/<%= item.productImage %>" alt="<%= item.productName %>" />
+          <img
+            src="/public/<%= item.productDetails.productImage[0] %>"
+            alt="<%= item.productDetails.productName %>"
+          />
           <div class="item-details">
-            <div class="item-name"><%= item.productName %></div>
-            <div class="item-subtext">Color: <%= item.selectedColor %></div>
+            <div class="item-name"><%= item.productDetails.productName %></div>
+            <div class="item-subtext">Color: <%= item.selectedColor || 'N/A' %></div>
             <div class="stock-status">
               <%= item.quantity > 0 ? "In Stock" : "Out Of Stock" %>
             </div>
             <div class="item-actions">
-              <form action="/cart/remove" method="POST" style="display:inline-block;">
-                <input type="hidden" name="itemId" value="<%= item._id %>">
-                <button type="submit"><i class="fas fa-trash-alt"></i> Remove</button>
+              <form action="/cart/remove" method="POST" style="display: inline-block">
+                <input type="hidden" name="itemId" value="<%= item._id %>" />
+                <button type="submit">
+                  <i class="fas fa-trash-alt"></i> Remove
+                </button>
               </form>
 
-              <form action="/cart/update" method="POST" style="display:inline-block;">
-                <input type="hidden" name="itemId" value="<%= item._id %>">
-                <input type="number" name="quantity" value="<%= item.quantity %>" min="1" style="width:60px;">
+              <form action="/cart/update" method="POST" style="display: inline-block">
+                <input type="hidden" name="itemId" value="<%= item._id %>" />
+                <input type="number" name="quantity" value="<%= item.quantity %>" min="1" style="width: 60px" />
                 <button type="submit">Update</button>
               </form>
             </div>
           </div>
         </div>
-      <% }) %>
+      <% }) %> 
     <% } else { %>
       <p>Your cart is empty.</p>
     <% } %>
-
   </div>
 
-  <% if(cart && cart.items.length > 0){ %>
-  <div class="cart-summary">
-    <h3>PRICE DETAILS</h3>
+  <% if(data && data.length > 0){ %>
+    <div class="cart-summary">
+      <h3>PRICE DETAILS</h3>
 
-    <div class="price-row">
-      <span>Price (<%= cart.items.length %> items)</span>
-      <span>₹<%= cart.items.reduce((sum,i)=>sum + i.priceAtAdd * i.quantity,0) %></span>
+      <div class="price-row">
+        <span>Price (<%= data.length %> items)</span>
+        <span>₹<%= data.reduce((sum,i) => sum + i.productDetails.salePrice * i.quantity, 0) %></span>
+      </div>
+
+      <div class="price-row">
+        <span>Discount</span>
+        <span>- ₹0</span>
+      </div>
+
+      <!-- If you implement coupon logic -->
+      <div class="price-row">
+        <span>Coupons Applied</span>
+        <span>- ₹0</span>
+      </div>
+
+      <div class="price-row">
+        <span>Protect Promise Fee</span>
+        <span>₹49</span>
+      </div>
+
+      <div class="total-price">
+        ₹<%= data.reduce((sum,i) => sum + i.productDetails.salePrice * i.quantity, 0) + 49 %>
+      </div>
+
+      <form action="/checkout" method="GET">
+        <button class="place-order-btn">
+          <i class="fas fa-check-circle"></i> PLACE ORDER
+        </button>
+      </form>
     </div>
-
-    <div class="price-row">
-      <span>Discount</span>
-      <span>- ₹<%= cart.discount || 0 %></span>
-    </div>
-
-    <!-- If you implement coupon logic -->
-    <div class="price-row">
-      <span>Coupons Applied</span>
-      <span>- ₹0</span>
-    </div>
-
-    <div class="price-row">
-      <span>Protect Promise Fee</span>
-      <span>₹49</span>
-    </div>
-
-    <div class="total-price">
-      ₹<%= cart.items.reduce((sum,i)=>sum + i.totalPrice,0) - cart.discount + 49 %>
-    </div>
-
-    <div class="save-amount">
-      You will save ₹<%= cart.items.reduce((sum,i)=>sum + (i.priceAtAdd * i.quantity - i.totalPrice),0) %> on this order
-    </div>
-
-    <form action="/checkout" method="GET">
-      <button class="place-order-btn"><i class="fas fa-check-circle"></i> PLACE ORDER</button>
-    </form>
-  </div>
   <% } %>
-
 </div>
 
 <%- include('../partials/footer') %>
