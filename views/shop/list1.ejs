@@ -1,0 +1,192 @@
+<%- include('../partials/header') %>
+
+<!-- Font Awesome for Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+
+<div class="container-fluid">
+  <div class="d-flex">
+    <!-- Sidebar -->
+    <div class="shop-sidebar" id="shopSidebar">
+      <div class="sidebar-header">
+        <h4>Filters</h4>
+        <button class="sidebar-toggle" id="closeSidebar">Close</button>
+      </div>
+      <form method="GET" class="shop-filter">
+        <div class="filter-section">
+          <h5>Category</h5>
+          <select name="category">
+            <option value="">All Categories</option>
+            <% categories.forEach(c => { %>
+              <option value="<%= c._id %>" <%= filters.category === c._id.toString() ? "selected" : "" %>>
+                <%= c.name %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="filter-section">
+          <h5>Subcategory</h5>
+          <select name="subcategory">
+            <option value="">All Subcategories</option>
+            <% subcategories.forEach(s => { %>
+              <option value="<%= s._id %>" <%= filters.subcategory === s._id.toString() ? "selected" : "" %>>
+                <%= s.name %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="filter-section">
+          <h5>Color</h5>
+          <select name="color">
+            <option value="">All Colors</option>
+            <option value="Silver" <%= filters.color === "Silver" ? "selected" : "" %>>Silver</option>
+            <option value="Gold" <%= filters.color === "Gold" ? "selected" : "" %>>Gold</option>
+            <option value="Rose Gold" <%= filters.color === "Rose Gold" ? "selected" : "" %>>Rose Gold</option>
+          </select>
+        </div>
+
+        <!-- Price Range Slider -->
+        <div class="filter-section">
+          <h5>Price Range</h5>
+          <div class="price-slider-wrap">
+            <div class="price-input">
+              <div class="field">
+                <span>Min</span>
+                <input type="number" class="input-min" id="minPriceInput" name="minPrice" value="<%= filters.minPrice || 0 %>">
+              </div>
+              <div class="separator">-</div>
+              <div class="field">
+                <span>Max</span>
+                <input type="number" class="input-max" id="maxPriceInput" name="maxPrice" value="<%= filters.maxPrice || 1000 %>">
+              </div>
+            </div>
+            <div class="slider">
+              <div class="progress" id="priceSliderRange"></div>
+            </div>
+            <div class="range-input">
+              <input type="range" class="range-min" id="minPriceRange" min="0" max="1000" value="<%= filters.minPrice || 0 %>" step="10">
+              <input type="range" class="range-max" id="maxPriceRange" min="0" max="1000" value="<%= filters.maxPrice || 1000 %>" step="10">
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <h5>Sort By</h5>
+          <select name="sort">
+            <option value="newest" <%= filters.sort === "newest" ? "selected" : "" %>>Newest</option>
+            <option value="oldest" <%= filters.sort === "oldest" ? "selected" : "" %>>Oldest</option>
+            <option value="priceAsc" <%= filters.sort === "priceAsc" ? "selected" : "" %>>Price: Low to High</option>
+            <option value="priceDesc" <%= filters.sort === "priceDesc" ? "selected" : "" %>>Price: High to Low</option>
+          </select>
+        </div>
+
+        <button type="submit">Apply Filters</button>
+        <button type="button" class="mobile-close-btn mt-3" id="mobileCloseSidebar">Close Filters</button>
+      </form>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="row">
+        <% products.forEach(product => { %>
+          <div class="col-md-3 col-sm-6">
+            <div class="product-card">
+              <div class="product-img-wrapper">
+                <img src="/public/<%= product.productImage[0] %>" class="product-img" alt="Product">
+                <div class="product-actions">
+                  <button><i class="far fa-heart"></i></button>
+                  <a href="/product/<%= product._id %>" class="product-action-btn">
+                    <i class="far fa-eye"></i>
+                  </a>
+                </div>
+              </div>
+              <h6 class="mt-3"><%= product.productName %></h6>
+              <div class="price-wrap">
+                <span class="price">₹<%= product.salePrice %></span>
+                <% if (product.regularPrice > product.salePrice) { %>
+                  <span class="old-price">₹<%= product.regularPrice %></span>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Fixed Filter Button -->
+<button id="fixedFilterBtn">
+  <i class="fas fa-filter"></i> Filters
+</button>
+
+<script>
+  // Sidebar toggle
+  const sidebar = document.getElementById("shopSidebar");
+  const openSidebarBtn = document.getElementById("fixedFilterBtn");
+  const closeSidebarBtn = document.getElementById("closeSidebar");
+  const mobileCloseSidebarBtn = document.getElementById("mobileCloseSidebar");
+
+  openSidebarBtn.addEventListener("click", () => {
+    sidebar.classList.add("active");
+    openSidebarBtn.style.display = "none";
+  });
+
+  closeSidebarBtn.addEventListener("click", () => {
+    sidebar.classList.remove("active");
+    openSidebarBtn.style.display = "flex";
+  });
+
+  mobileCloseSidebarBtn.addEventListener("click", () => {
+    sidebar.classList.remove("active");
+    openSidebarBtn.style.display = "flex";
+  });
+
+  // Price slider logic
+  const rangeInput = document.querySelectorAll(".range-input input");
+  const priceInput = document.querySelectorAll(".price-input input");
+  const range = document.querySelector(".slider .progress");
+  let priceGap = 10;
+
+  priceInput.forEach((input) => {
+    input.addEventListener("input", (e) => {
+      let minPrice = parseInt(priceInput[0].value);
+      let maxPrice = parseInt(priceInput[1].value);
+
+      if (maxPrice - minPrice >= priceGap && maxPrice <= rangeInput[1].max && minPrice >= rangeInput[0].min) {
+        if (e.target.className === "input-min") {
+          rangeInput[0].value = minPrice;
+          range.style.left = ((minPrice / rangeInput[0].max) * 100) + "%";
+        } else {
+          rangeInput[1].value = maxPrice;
+          range.style.right = 100 - (maxPrice / rangeInput[1].max) * 100 + "%";
+        }
+      }
+    });
+  });
+
+  rangeInput.forEach((input) => {
+    input.addEventListener("input", (e) => {
+      let minVal = parseInt(rangeInput[0].value);
+      let maxVal = parseInt(rangeInput[1].value);
+
+      if (maxVal - minVal < priceGap) {
+        if (e.target.className === "range-min") {
+          rangeInput[0].value = maxVal - priceGap;
+        } else {
+          rangeInput[1].value = minVal + priceGap;
+        }
+      } else {
+        priceInput[0].value = minVal;
+        priceInput[1].value = maxVal;
+        range.style.left = ((minVal / rangeInput[0].max) * 100) + "%";
+        range.style.right = 100 - (maxVal / rangeInput[1].max) * 100 + "%";
+      }
+    });
+  });
+</script>
+
+<%- include('../partials/footer') %>

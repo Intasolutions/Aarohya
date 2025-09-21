@@ -7,6 +7,7 @@ const getHome = async (req, res) => {
     const products = await Product.find({ isBlocked: false });
     const categories = await Category.find({ isBlocked: false });
 
+    console.log(products)
     // Pass both to EJS
     res.render("shop/home", { products, categories });
   } catch (error) {

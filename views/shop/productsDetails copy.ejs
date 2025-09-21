@@ -1,0 +1,127 @@
+<%- include('../partials/header') %>
+
+<section class="product-page container">
+  
+  <!-- Left: Product Images -->
+  <div class="product-gallery">
+    <!-- Main Image -->
+    <img src="/public/<%= product.productImage[0] %>" class="main-image" id="mainImage" alt="<%= product.productName %>">
+    
+    <!-- Thumbnails -->
+    <div class="thumbnails">
+      <% product.productImage.forEach(img => { %>
+        <img src="/public/<%= img %>" alt="thumb">
+      <% }) %>
+    </div>
+  </div>
+
+  <!-- Right: Product Info -->
+  <div class="product-info">
+    <h1><%= product.productName %></h1>
+    
+    <div class="rating">
+      ⭐⭐⭐⭐☆ <span>(<%= product.reviews ? product.reviews.length : 0 %> Reviews)</span>
+    </div>
+
+    <p class="price">
+      ₹<%= product.salePrice || product.regularPrice %> 
+      <% if(product.salePrice){ %>
+        <span class="old-price">₹<%= product.regularPrice %></span>
+        <span class="offer"><%= Math.round(((product.regularPrice - product.salePrice)/product.regularPrice)*100) %>% Off</span>
+      <% } %>
+    </p>
+
+    <p class="stock"><%= product.quantity > 0 ? "In Stock " : "Out of Stock ❌" %></p>
+    <!-- Color Variants -->
+<div class="color-variants mt-3">
+  <label><strong>Available Colors:</strong></label>
+  <div class="d-flex gap-2">
+    <% variants.forEach(v => { %>
+      <a href="/product/<%= v._id %>" 
+         class="color-swatch" 
+         style="background: <%= v.color %>" 
+         title="<%= v.color %>">
+      </a>
+    <% }) %>
+  </div>
+</div>
+
+    <!-- Quantity -->
+    <div class="quantity">
+      <button id="decreaseBtn">-</button>
+      <input type="number" value="1" min="1" id="qty">
+      <button id="increaseBtn">+</button>
+    </div>
+
+    <!-- Buttons -->
+    <div class="actions">
+      <button class="btn buy-now">Buy Now</button>
+      <form action="/cart/add/<%= product._id %>" method="POST" style="display:inline">
+        <button type="submit" class="btn add-cart"><i class="fa fa-cart-plus"></i> Add to Cart</button>
+      </form>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-target="desc">Description</button>
+      <button class="tab" data-target="details">Details</button>
+      <button class="tab" data-target="reviews">Reviews</button>
+    </div>
+    <div class="tab-content" id="desc"><%= product.description %></div>
+    <div class="tab-content hidden" id="details">
+      Category: <%= product.category ? product.category.name : 'N/A' %><br>
+      SubCategory: <%= product.subcategory ? product.subcategory.name : 'N/A' %><br>
+    </div>
+    <div class="tab-content hidden" id="reviews">
+      <% if(product.reviews && product.reviews.length > 0){ %>
+        <% product.reviews.forEach(r => { %>
+          <p>⭐ <%= r.rating %>/5 - <%= r.comment %></p>
+        <% }) %>
+      <% } else { %>
+        <p>No reviews yet.</p>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<section class="related container">
+  <h2>Related Products</h2>
+  <div class="row">
+    <% if (relatedProducts.length > 0) { %>
+      <% relatedProducts.forEach(product => { %>
+        <div class="col-md-3 col-sm-6">
+          <div class="product-card">
+            <div class="product-img-wrapper">
+              <img src="/public/<%= product.productImage[0] %>" class="product-img" alt="Product">
+              <div class="product-actions">
+                <button><i class="far fa-heart"></i></button>
+                <a href="/product/<%= product._id %>" class="product-action-btn">
+                  <i class="far fa-eye"></i>
+                </a>
+              </div>
+            </div>
+            <h6 class="mt-3"><%= product.productName %></h6>
+            <div class="price-wrap">
+              <span class="price">₹<%= product.salePrice %></span>
+              <% if (product.regularPrice >= product.salePrice) { %>
+                <span class="old-price">₹<%= product.regularPrice %></span>
+              <% } %>
+            </div>
+            <div class="rating mt-2">
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star"></i>
+              <i class="fa fa-star-half-alt"></i>
+              <small class="text-muted">(65)</small>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    <% } else { %>
+      <p>No related products found.</p>
+    <% } %>
+  </div>
+</section>
+
+<%- include('../partials/footer') %>
