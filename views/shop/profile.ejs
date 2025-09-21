@@ -232,17 +232,17 @@
     <!-- Sidebar -->
     <aside class="profilePage__sidebar">
       <div class="profilePage__sidebar-user">
-        <img src="public/images/profile/avatar.jpg" alt="User Avatar">
+        <img src="/public/images/profile/avatar.jpg" alt="User Avatar">
         <div>
           <p>Hello,</p>
-          <h4>Akash A</h4>
+          <h4><%= user.name %></h4>
         </div>
       </div>
 
       <div class="profilePage__sidebar-section">
         <h5><i class="fas fa-box"></i> My Orders</h5>
         <div class="profilePage__links">
-          <a href="/Order">Orders</a>
+          <a href="/order">Orders</a>
         </div>
       </div>
 
@@ -267,7 +267,7 @@
       <div class="profilePage__sidebar-section">
         <h5><i class="fas fa-folder-open"></i> My Stuff</h5>
         <div class="profilePage__links">
-          <a href="/whislist">My Wishlist</a>
+          <a href="/wishlist">My Wishlist</a>
         </div>
       </div>
     </aside>
@@ -276,26 +276,82 @@
     <section class="profilePage__content">
       <h2>Personal Information</h2>
       <hr><br>
-      <form class="profilePage__form">
+      <form id="profileForm" class="profilePage__form">
         <label>Full Name</label>
-        <input type="text" value="Akash A">
+        <input type="text" name="name" value="<%= user.name %>" required>
 
         <label>Email</label>
-        <input type="email" value="akash78988@gmail.com" disabled>
+        <input type="email" name="email" value="<%= user.email %>" disabled>
 
         <label>Phone</label>
-        <input type="tel" value="+91 81296 86484">
+        <input type="tel" name="phone" value="<%= user.phone || '' %>">
 
         <label>Address</label>
-        <textarea placeholder="Enter your address">123, Sample Street, Kochi, Kerala</textarea>
+        <textarea name="address" placeholder="Enter your address"><%= user.address || '' %></textarea>
 
         <button type="submit" class="profilePage__save-button">
           <i class="fas fa-check-circle"></i> Save Changes
+        </button>
+      </form>
+
+      <h3 class="mt-4">Change Password</h3>
+      <form id="passwordForm" class="profilePage__form">
+        <label>Old Password</label>
+        <input type="password" name="oldPassword" required>
+
+        <label>New Password</label>
+        <input type="password" name="newPassword" required>
+
+        <button type="submit" class="profilePage__save-button">
+          <i class="fas fa-key"></i> Change Password
         </button>
       </form>
     </section>
 
   </div>
 </main>
+
+<script>
+  // Update Profile Info
+  document.getElementById('profileForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const data = {
+      name: form.name.value,
+      phone: form.phone.value,
+      address: form.address.value
+    };
+
+    const res = await fetch('/profile/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+    alert(result.message);
+  });
+
+  // Change Password
+  document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const data = {
+      oldPassword: form.oldPassword.value,
+      newPassword: form.newPassword.value
+    };
+
+    const res = await fetch('/profile/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+    alert(result.message);
+  });
+</script>
 
 <%- include('../partials/footer') %>

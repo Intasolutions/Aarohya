@@ -106,8 +106,10 @@
         <div class="product-card">
           <div class="product-img-wrapper">
             <img src="/public/<%=product.productImage[0]%>" class="product-img" alt="Product">
-            <div class="product-actions">
-              <button><i class="far fa-heart"></i></button>
+            <div class="product-actions">z
+             <button class="wishlist-btn" data-id="<%= product._id %>">
+  <i class="far fa-heart"></i>
+</button>
               <a href="/product/<%= product._id %>" class="product-action-btn">
                 <i class="far fa-eye"></i>
               </a>
@@ -328,6 +330,25 @@
     
   </div>
 </section>
+<script>
+document.querySelectorAll('.wishlist-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const productId = btn.dataset.id;
+    const isAdded = btn.classList.contains('added'); // toggle state
 
+    const url = `/wishlist/${productId}`;
+    const method = isAdded ? 'DELETE' : 'POST';
+
+    const res = await fetch(url, { method, credentials: 'include' });
+    const data = await res.json();
+
+    alert(data.message);
+
+    if (data.success) {
+      btn.classList.toggle('added');
+    }
+  });
+});
+</script>
 
 <%- include('../partials/footer') %>
