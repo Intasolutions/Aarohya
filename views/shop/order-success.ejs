@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Order Successful</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="/public/img/core-img/favicon.ico" />
+  <link rel="stylesheet" href="/public/css/core-style.css" />
+  <link rel="stylesheet" href="/public/css/style.css" />
+  <style>
+    :root{--ok:#2f9e44;--ink:#212529;--muted:#868e96;--bg:#f8f9fa;--brand:#b197fc}
+    body{background:#fff}
+    .topbar{padding:14px 22px;border-bottom:1px solid #f1f3f5;display:flex;align-items:center;justify-content:space-between}
+    .topbar a{color:var(--ink);text-decoration:none}
+    .pill{display:inline-flex;align-items:center;gap:8px;background:rgba(47,158,68,.08);color:var(--ok);border:1px solid rgba(47,158,68,.2);padding:6px 10px;border-radius:999px;font-weight:600}
+    .wrap{max-width:980px;margin:36px auto;padding:0 16px}
+    .card{border:1px solid #edf0f5;border-radius:14px;background:#fff;box-shadow:0 10px 30px rgba(0,0,0,.04)}
+    .card .hd{padding:18px 18px 0}
+    .card .bd{padding:18px}
+    .grid{display:grid;grid-template-columns: 1.2fr .8fr;gap:16px}
+    @media (max-width: 900px){.grid{grid-template-columns:1fr}}
+    .kv{display:flex;gap:10px;align-items:center;margin:6px 0}
+    .kv small{color:var(--muted)}
+    .items{max-height:310px;overflow:auto;border:1px solid #f1f3f5;border-radius:12px;padding:10px}
+    .item{display:flex;gap:12px;padding:10px;border-bottom:1px dashed #eef1f5}
+    .item:last-child{border-bottom:none}
+    .item img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #eee}
+    .sum ul{list-style:none;margin:0;padding:0}
+    .sum li{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #f1f3f5}
+    .sum li:last-child{border-bottom:none}
+    .big{font-size:20px;font-weight:700}
+    .addr{border:1px dashed #e9ecef;border-radius:12px;padding:12px;color:#495057;background:#fcfcff}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:10px 14px;font-weight:600;border:1px solid transparent;cursor:pointer;text-decoration:none}
+    .btn-primary{background:var(--brand);color:#fff}
+    .btn-ghost{background:#fff;border-color:#dee2e6;color:#343a40}
+    .badge{display:inline-block;background:#f1f3f5;border-radius:999px;padding:4px 8px;font-size:12px}
+    .ok-dot{width:9px;height:9px;background:var(--ok);border-radius:50%;display:inline-block}
+    /* confetti-ish */
+    .spark{position:fixed;inset:0;pointer-events:none}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a href="/"><img src="/public/img/core-img/logo.png" style="height:34px" alt="Logo"></a>
+    <nav>
+      <a href="/shop">Shop</a> · <a href="/cart">Cart</a> · <strong>Order</strong>
+    </nav>
+  </div>
+
+  <div class="wrap">
+    <div class="card">
+      <div class="hd">
+        <span class="pill"><span class="ok-dot"></span> Payment Successful</span>
+      </div>
+      <div class="bd">
+        <div class="grid">
+          <!-- left -->
+          <div>
+            <h2 class="mb-2">Thank you, your order is confirmed 🎉</h2>
+            <div class="kv"><small>Order ID</small> <strong>#<%= (order?.orderId || order?._id || '—') %></strong></div>
+            <div class="kv"><small>Placed on</small> <span><%= new Date(order?.createdAt || Date.now()).toLocaleString() %></span></div>
+            <div class="kv"><small>Payment</small> <span class="badge"><%= order?.paymentMethod || 'online' %></span> <small class="ml-2">Status:</small> <span class="badge"><%= order?.paymentStatus || 'Success' %></span></div>
+            <% if (order?.estimatedDelivery || order?.deliveredAt) { %>
+              <div class="kv"><small>Estimated delivery</small> <strong><%= new Date(order?.estimatedDelivery || order?.deliveredAt).toDateString() %></strong></div>
+            <% } %>
+
+            <h5 class="mt-3">Items</h5>
+            <div class="items">
+              <% (order?.items || order?.orderedItems || []).forEach(function(it){ %>
+                <div class="item">
+                  <img src="<%= it.image ? ('/public/' + it.image) : (it.productImage ? '/public/' + it.productImage : '/public/img/bg-img/cart1.jpg') %>" alt="">
+                  <div>
+                    <div><strong><%= it.productName || it.product?.productName %></strong></div>
+                    <small class="text-muted">Qty: <%= it.quantity %> • Color: <%= it.color || it.product?.color || '-' %></small><br/>
+                    <small>₹<%= it.unitPrice || it.price || (it.product?.salePrice || 0) %></small>
+                  </div>
+                  <div class="ml-auto"><strong>₹<%= it.lineTotal || ( (it.unitPrice || it.price || it.product?.salePrice || 0) * it.quantity ) %></strong></div>
+                </div>
+              <% }) %>
+            </div>
+          </div>
+
+          <!-- right -->
+          <div>
+            <div class="sum card" style="border:none">
+              <div class="bd">
+                <h5>Summary</h5>
+                <ul>
+                  <li><span>Subtotal</span><span>₹<%= order?.totals?.subtotal ?? order?.totalPrice ?? 0 %></span></li>
+                  <li><span>Discount</span><span>- ₹<%= order?.totals?.discountAmount ?? order?.discount ?? 0 %></span></li>
+                  <% if ((order?.totals?.taxAmount ?? 0) > 0) { %>
+                    <li><span>Tax</span><span>₹<%= order?.totals?.taxAmount %></span></li>
+                  <% } %>
+                  <li><span>Shipping</span><span><%= (order?.totals?.shippingFee ?? 0) === 0 ? 'Free' : ('₹' + order?.totals?.shippingFee) %></span></li>
+                  <li class="big"><span>Total</span><span>₹<%= order?.totals?.grandTotal ?? order?.finalAmount ?? order?.amount ?? 0 %></span></li>
+                </ul>
+
+                <h6 class="mt-3">Shipping to</h6>
+                <div class="addr">
+                  <% const A = order?.address || {}; %>
+                  <strong><%= A.name || '-' %></strong><br/>
+                  <%= [A.apartment, A.building, A.street].filter(Boolean).join(', ') %><br/>
+                  <%= [A.city, A.state].filter(Boolean).join(', ') %> - <%= A.zip || '' %><br/>
+                  <%= A.country || '' %><br/>
+                  <small>Phone: <%= A.phone || '-' %></small>
+                </div>
+
+                <div class="actions">
+                  <a class="btn btn-primary" href="/orders/<%= order?._id || order?.orderId %>"><i class="fa fa-receipt"></i> View Order</a>
+                  <a class="btn btn-ghost" href="/shop"><i class="fa fa-shopping-bag"></i> Continue Shopping</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div> <!-- /grid -->
+      </div>
+    </div>
+  </div>
+
+  <canvas class="spark" id="spark"></canvas>
+  <script>
+    // tiny celebratory sparks
+    (function(){
+      const c = document.getElementById('spark'); if(!c) return;
+      const dpr = window.devicePixelRatio || 1;
+      const ctx = c.getContext('2d');
+      function resize(){ c.width = innerWidth*dpr; c.height = innerHeight*dpr; ctx.scale(dpr,dpr); }
+      resize(); addEventListener('resize', resize);
+      const parts = Array.from({length: 120}, () => ({
+        x: innerWidth/2, y: innerHeight/3, a: Math.random()*Math.PI*2, v: 2+Math.random()*4, life: 60+Math.random()*60, h: Math.random()*360
+      }));
+      let t=0;
+      (function loop(){
+        ctx.clearRect(0,0,innerWidth,innerHeight);
+        parts.forEach(p=>{
+          p.x += Math.cos(p.a)*p.v; p.y += Math.sin(p.a)*p.v; p.v*=0.98; p.life--;
+          ctx.fillStyle = `hsl(${p.h},90%,60%)`;
+          ctx.fillRect(p.x, p.y, 3, 3);
+        });
+        if(++t<120) requestAnimationFrame(loop);
+      })();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="description" content="">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+  <title>Checkout</title>
+
+  <!-- Favicon -->
+  <link rel="icon" href="/public/img/core-img/favicon.ico" />
+
+  <!-- Core Style CSS (use your public paths) -->
+  <link rel="stylesheet" href="/public/css/core-style.css" />
+  <link rel="stylesheet" href="/public/css/style.css" />
+
+  <style>
+    /* Small, clear status box for validation issues */
+    .chk-issues{border:1px solid #ffd8a8;background:#fff9db;border-radius:10px;padding:12px 14px;margin-bottom:18px;display:none}
+    .chk-issues.show{display:block}
+    .chk-issues .issue{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-bottom:1px dashed #ffe8cc}
+    .chk-issues .issue:last-child{border-bottom:none}
+    .issue.warn i{color:#f59f00}
+    .issue.error i{color:#e03131}
+    .amado-btn.disabled, .amado-btn[disabled]{opacity:.55;cursor:not-allowed}
+    .addr-card{border:1px solid #eee;border-radius:10px;padding:12px;display:flex;gap:10px;margin-bottom:10px}
+    .addr-card.active{border-color:#b197fc;box-shadow:0 0 0 3px rgba(177,151,252,.18)}
+    .addr-inline{border:1px dashed #d0d5dd;border-radius:12px;padding:14px;margin-top:12px}
+    .addr-inline .row > div{margin-bottom:10px}
+    .cart-mini-list{max-height:280px;overflow:auto;margin:0 -10px;padding:0 10px}
+    .cart-mini-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid #f2f2f2}
+    .cart-mini-item:last-child{border-bottom:none}
+    .cart-mini-item img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #eee}
+    .summary-table li{display:flex;justify-content:space-between}
+    .payment-method .custom-control{margin-bottom:8px}
+  </style>
+</head>
+
+<body>
+  <!-- Simple top bar (replace with your partials if you want) -->
+  <header class="header-area clearfix" style="padding:16px 24px;border-bottom:1px solid #f1f3f5">
+    <div class="d-flex align-items-center justify-content-between">
+      <a href="/" class="logo"><img src="/public/img/core-img/logo.png" alt="Logo" style="height:34px"></a>
+      <nav class="amado-nav">
+        <ul class="d-flex" style="gap:18px">
+          <li><a href="/">Home</a></li>
+          <li><a href="/shop">Shop</a></li>
+          <li><a href="/cart">Cart</a></li>
+          <li class="active"><a href="/checkout">Checkout</a></li>
+        </ul>
+      </nav>
+      <div></div>
+    </div>
+  </header>
+
+  <div class="cart-table-area section-padding-100">
+    <div class="container-fluid">
+      <div class="row">
+        <!-- LEFT: Details -->
+        <div class="col-12 col-lg-8">
+          <div class="checkout_details_area mt-50 clearfix">
+            <div class="cart-title">
+              <h2>Checkout</h2>
+            </div>
+
+            <!-- Server validation issues -->
+            <div id="checkoutIssues" class="chk-issues"></div>
+
+            <!-- Address + Payment form -->
+            <form id="checkoutForm" autocomplete="on">
+              <!-- Address chooser -->
+              <div class="mb-3">
+                <h5 class="mb-2">Shipping Address</h5>
+
+                <div class="custom-control custom-radio mb-2">
+                  <input type="radio" class="custom-control-input" name="addrMode" id="addrSaved" value="saved" checked>
+                  <label class="custom-control-label" for="addrSaved">Use saved address</label>
+                </div>
+                <div class="custom-control custom-radio mb-2">
+                  <input type="radio" class="custom-control-input" name="addrMode" id="addrNew" value="new">
+                  <label class="custom-control-label" for="addrNew">Use a new address</label>
+                </div>
+
+                <!-- Saved addresses -->
+                <div id="savedAddrWrap" class="mt-2">
+                  <% if (addresses && addresses.length) { %>
+                    <% addresses.forEach(function(a, idx){ %>
+                      <label class="addr-card <%= idx === 0 ? 'active':'' %>">
+                        <input type="radio" name="addressId" value="<%= a._id %>" <%= idx === 0 ? 'checked':'' %> style="margin-top:5px" />
+                        <div>
+                          <strong><%= a.addressType %></strong><br/>
+                          <small>
+                            <%= a.name %>, <%= a.apartment %>, <%= a.building %>, <%= a.street %>, <%= a.city %>, <%= a.state %> - <%= a.zip %>, <%= a.country %><br/>
+                            <span>Phone: <%= a.phone %></span> <%= a.altPhone ? (' / ' + a.altPhone) : '' %>
+                          </small>
+                        </div>
+                      </label>
+                    <% }) %>
+                  <% } else { %>
+                    <div class="addr-card active">
+                      <div>
+                        <em>No saved addresses. Please enter a new address below.</em>
+                      </div>
+                    </div>
+                    <script>window.__forceNewAddress = true;</script>
+                  <% } %>
+                </div>
+
+                <!-- Inline new address -->
+                <div id="newAddrWrap" class="addr-inline" style="display:none">
+                  <div class="row">
+                    <div class="col-md-4">
+                      <select class="form-control" name="addressType">
+                        <option value="Home">Home</option>
+                        <option value="Work">Work</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div class="col-md-8">
+                      <input type="text" class="form-control" name="name" placeholder="Full Name" />
+                    </div>
+                    <div class="col-md-6">
+                      <input type="text" class="form-control" name="apartment" placeholder="Apartment / Flat No" />
+                    </div>
+                    <div class="col-md-6">
+                      <input type="text" class="form-control" name="building" placeholder="Building / House Name" />
+                    </div>
+                    <div class="col-md-6">
+                      <input type="text" class="form-control" name="street" placeholder="Street / Area" />
+                    </div>
+                    <div class="col-md-6">
+                      <input type="text" class="form-control" name="landmark" placeholder="Landmark" />
+                    </div>
+                    <div class="col-md-4">
+                      <input type="text" class="form-control" name="city" placeholder="City" />
+                    </div>
+                    <div class="col-md-4">
+                      <input type="text" class="form-control" name="state" placeholder="State" />
+                    </div>
+                    <div class="col-md-4">
+                      <input type="text" class="form-control" name="country" placeholder="Country" value="India" />
+                    </div>
+                    <div class="col-md-4">
+                      <input type="text" class="form-control" name="zip" placeholder="PIN / ZIP" />
+                    </div>
+                    <div class="col-md-4">
+                      <input type="text" class="form-control" name="phone" placeholder="Phone" />
+                    </div>
+                    <div class="col-md-4">
+                      <input type="text" class="form-control" name="altPhone" placeholder="Alternate Phone" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Note -->
+              <div class="col-12 mb-3">
+                <textarea name="note" class="form-control w-100" rows="4" placeholder="Leave a note about your order (optional)"></textarea>
+              </div>
+
+              <!-- Payment -->
+              <div class="payment-method mb-2">
+                <h5 class="mb-2">Payment</h5>
+                <div class="custom-control custom-radio mr-sm-2">
+                  <input type="radio" class="custom-control-input" id="pay_cod" name="paymentMethod" value="cod" checked>
+                  <label class="custom-control-label" for="pay_cod">Cash on Delivery</label>
+                </div>
+
+                <% if (paymentKeyId) { %>
+                  <div class="custom-control custom-radio mr-sm-2">
+                    <input type="radio" class="custom-control-input" id="pay_rzp" name="paymentMethod" value="razorpay">
+                    <label class="custom-control-label" for="pay_rzp">
+                      Online Payment
+                      <img class="ml-15" src="/public/img/core-img/paypal.png" alt="" style="height:16px;opacity:.75">
+                    </label>
+                  </div>
+                <% } %>
+              </div>
+
+              <button id="placeOrderBtn" class="btn amado-btn" type="submit">Place Order</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- RIGHT: Summary -->
+        <div class="col-12 col-lg-4">
+          <div class="cart-summary">
+            <h5>Order Summary</h5>
+
+            <div class="cart-mini-list mb-3">
+              <% if (items && items.length) { %>
+                <% items.forEach(function(it){ %>
+                  <div class="cart-mini-item">
+                    <img src="<%= it.image ? ('/public/' + it.image) : '/public/img/bg-img/cart1.jpg' %>" alt="">
+                    <div>
+                      <strong><%= it.productName %></strong><br/>
+                      <small>Qty: <%= it.quantity %> • Color: <%= it.color %></small><br/>
+                      <small>₹<%= it.unitPrice %> each</small>
+                    </div>
+                    <div class="ml-auto"><strong>₹<%= it.lineTotal %></strong></div>
+                  </div>
+                <% }) %>
+              <% } else { %>
+                <p class="text-muted">Your cart is empty.</p>
+              <% } %>
+            </div>
+
+            <ul class="summary-table">
+              <li><span>Subtotal:</span> <span>₹<%= totals.subtotal %></span></li>
+              <li><span>Discount:</span> <span>- ₹<%= totals.discountAmount %></span></li>
+              <li><span>Shipping:</span> <span><%= totals.shippingFee === 0 ? 'Free' : ('₹' + totals.shippingFee) %></span></li>
+              <% if (totals.taxAmount && totals.taxAmount > 0) { %>
+                <li><span>Tax:</span> <span>₹<%= totals.taxAmount %></span></li>
+              <% } %>
+              <li><span><strong>Total:</strong></span> <span><strong>₹<%= totals.grandTotal %></strong></span></li>
+            </ul>
+
+            <div class="mt-2">
+              <small class="text-muted">By placing this order you agree to our Terms & Refund policy.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Newsletter (as in your theme) -->
+  <section class="newsletter-area section-padding-100-0">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-12 col-lg-6 col-xl-7">
+          <div class="newsletter-text mb-100">
+            <h2>Subscribe for a <span>25% Discount</span></h2>
+            <p>Nulla ac convallis lorem, eget euismod nisl. Donec in libero sit amet mi vulputate consectetur.</p>
+          </div>
+        </div>
+        <div class="col-12 col-lg-6 col-xl-5">
+          <div class="newsletter-form mb-100">
+            <form action="#" method="post">
+              <input type="email" name="email" class="nl-email" placeholder="Your E-mail">
+              <input type="submit" value="Subscribe">
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scripts -->
+  <% if (paymentKeyId) { %>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <% } %>
+
+  <script>
+    // Toggle address UI
+    const savedWrap = document.getElementById('savedAddrWrap');
+    const newWrap = document.getElementById('newAddrWrap');
+    const addrSaved = document.getElementById('addrSaved');
+    const addrNew = document.getElementById('addrNew');
+    const issuesBox = document.getElementById('checkoutIssues');
+    const form = document.getElementById('checkoutForm');
+    const placeBtn = document.getElementById('placeOrderBtn');
+
+    function setAddrMode(mode){
+      const useNew = mode === 'new';
+      newWrap.style.display = useNew ? 'block' : 'none';
+      savedWrap.style.display = useNew ? 'none' : 'block';
+    }
+
+    addrSaved?.addEventListener('change', () => setAddrMode('saved'));
+    addrNew?.addEventListener('change',  () => setAddrMode('new'));
+
+    // Force "new address" if no saved ones
+    if (window.__forceNewAddress) {
+      addrNew.checked = true;
+      setAddrMode('new');
+    } else {
+      setAddrMode(addrSaved.checked ? 'saved' : 'new');
+    }
+
+    // Starter validation load
+    async function loadIssues(){
+      try{
+        const res = await fetch('/checkout/validate', { method:'POST', headers: { 'X-Requested-With':'XMLHttpRequest' }});
+        const data = await res.json();
+        issuesBox.innerHTML = '';
+        if (data.issues && data.issues.length) {
+          issuesBox.classList.add('show');
+          data.issues.forEach(i=>{
+            const div = document.createElement('div');
+            div.className = 'issue ' + (i.level || 'warn');
+            div.innerHTML = `<i class="fa fa-info-circle" aria-hidden="true"></i> <span>${i.message}</span>`;
+            issuesBox.appendChild(div);
+          });
+        } else {
+          issuesBox.classList.remove('show');
+        }
+        if (!data.success) placeBtn.setAttribute('disabled','disabled');
+        else placeBtn.removeAttribute('disabled');
+      } catch(err){
+        console.warn(err);
+      }
+    }
+    loadIssues();
+
+    function newAddressPayload() {
+      const sel = s => newWrap.querySelector(s);
+      return {
+        addressType: sel('[name="addressType"]').value.trim(),
+        name:        sel('[name="name"]').value.trim(),
+        apartment:   sel('[name="apartment"]').value.trim(),
+        building:    sel('[name="building"]').value.trim(),
+        street:      sel('[name="street"]').value.trim(),
+        landmark:    sel('[name="landmark"]').value.trim(),
+        city:        sel('[name="city"]').value.trim(),
+        state:       sel('[name="state"]').value.trim(),
+        country:     sel('[name="country"]').value.trim(),
+        zip:         sel('[name="zip"]').value.trim(),
+        phone:       sel('[name="phone"]').value.trim(),
+        altPhone:    sel('[name="altPhone"]').value.trim(),
+      };
+    }
+
+    form?.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      placeBtn.setAttribute('disabled','disabled');
+
+      try {
+        const fd = new FormData(form);
+        const paymentMethod = fd.get('paymentMethod') || 'cod';
+        const payload = { paymentMethod, note: fd.get('note') || undefined };
+
+        // address
+        if (addrNew.checked) payload.addressBody = newAddressPayload();
+        else payload.addressId = fd.get('addressId');
+
+        const res = await fetch('/checkout/place-order', {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+
+        if (!data.success) {
+          alert(data.message || 'Could not place order.');
+          placeBtn.removeAttribute('disabled');
+          return;
+        }
+
+        if (data.nextAction === 'redirect' && data.redirectUrl) {
+          window.location.assign(data.redirectUrl);
+          return;
+        }
+
+        if (data.nextAction === 'pay' && data.razorpay) {
+          if (!window.Razorpay) {
+            alert('Payment SDK not loaded.');
+            placeBtn.removeAttribute('disabled');
+            return;
+          }
+          const rz = new Razorpay({
+            key: data.razorpay.keyId,
+            order_id: data.razorpay.orderId,
+            amount: data.razorpay.amount,
+            currency: data.razorpay.currency,
+            name: data.razorpay.name,
+            description: data.razorpay.description,
+            prefill: data.razorpay.prefill,
+            handler: async function (resp) {
+              const v = await fetch('/checkout/razorpay/verify', {
+                method: 'POST',
+                headers: { 'Content-Type':'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({
+                  razorpay_order_id: resp.razorpay_order_id,
+                  razorpay_payment_id: resp.razorpay_payment_id,
+                  razorpay_signature: resp.razorpay_signature,
+                  orderDbId: data.razorpay.orderDbId,
+                }),
+              });
+              const vData = await v.json();
+              if (vData.success && vData.redirectUrl) window.location.assign(vData.redirectUrl);
+              else {
+                alert(vData.message || 'Payment verification failed.');
+                placeBtn.removeAttribute('disabled');
+              }
+            },
+            modal: { ondismiss: function(){ placeBtn.removeAttribute('disabled'); } }
+          });
+          rz.open();
+          return;
+        }
+
+        placeBtn.removeAttribute('disabled');
+      } catch (err) {
+        console.error(err);
+        alert('Something went wrong.');
+        placeBtn.removeAttribute('disabled');
+      }
+    });
+  </script>
+
+  <!-- (Optional) Your theme JS -->
+  <script src="/public/js/jquery/jquery-2.2.4.min.js"></script>
+  <script src="/public/js/popper.min.js"></script>
+  <script src="/public/js/bootstrap.min.js"></script>
+  <script src="/public/js/plugins.js"></script>
+  <script src="/public/js/active.js"></script>
+</body>
+</html>

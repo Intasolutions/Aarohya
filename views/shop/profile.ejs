@@ -5,16 +5,46 @@
   <meta name="description" content="">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Amado - Furniture Ecommerce Template | Home</title>
+  <title>Profile</title>
 
   <!-- Favicon  -->
-  <link rel="icon" href="public/img/core-img/favicon.ico">
+  <link rel="icon" href="/public/img/core-img/favicon.ico">
 
   <!-- Core Style CSS -->
-  <link rel="stylesheet" href="public/css/core-style.css">
-  <link rel="stylesheet" href="public/css/style.css">
-  <link rel="stylesheet" href="public/css/profile.css">
+  <link rel="stylesheet" href="/public/css/core-style.css">
+  <link rel="stylesheet" href="/public/css/style.css">
+  <link rel="stylesheet" href="/public/css/profile.css">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+
+  <style>
+    /* --- Simple modal (pf-) --- */
+.pf-modal .pf-card { width: min(680px, 92vw); border-radius: 12px; background: #fff; box-shadow: 0 12px 40px rgba(0,0,0,.18); }
+    .pf-modal .pf-card-hd { padding: 16px 20px; border-bottom: 1px solid #eef1f5; display:flex; justify-content: space-between; align-items:center; }
+    .pf-modal .pf-card-bd { padding: 18px 20px; }
+    .pf-modal .pf-grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+    .pf-modal .pf-actions { display:flex; justify-content:flex-end; gap:10px; padding: 12px 20px 18px; }
+    .pf-input, .pf-select { width:100%; padding:10px 12px; border:1px solid #d8dee9; border-radius:8px; outline:none; }
+    .pf-input:focus, .pf-select:focus { border-color:#b197fc; box-shadow: 0 0 0 3px rgba(177,151,252,.25); }
+    /* Base state: VISIBLE — we will add/remove .pf-hidden to toggle */
+.pf-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.35);
+  backdrop-filter: blur(1px);
+  z-index: 1000;
+}
+
+.pf-modal {
+  position: fixed; inset: 0;
+  display: flex;               /* <- important */
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+}
+
+/* Hide when needed */
+.pf-hidden { display: none !important; }
+
+  </style>
 </head>
 
 <body>
@@ -27,11 +57,11 @@
         <div class="pf-profile">
           <div class="pf-avatar">
             <!-- Avatar -->
-            <img src="<%= (user && user.profileImage) ? ('/uploads/' + user.profileImage) : 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=300' %>" alt="Avatar"/>
+            <img src="<%= (user && user.profileImage) ? ('/public/uploads/' + user.profileImage) : 'https://images.unsplash.com/photo-1544723795-3fb6469f5b39?q=80&w=300' %>" alt="Avatar"/>
             <span class="pf-badge"><i class="fa-solid fa-crown"></i> <%= (user && user.membership) ? user.membership : 'Gold' %></span>
           </div>
           <div>
-            <div class="pf-title"><%= user ? (user.fullName || 'Guest User') : 'Guest User' %></div>
+            <div class="pf-title"><%= user ? (user.name || 'Guest User') : 'Guest User' %></div>
             <div class="pf-meta">
               <span class="pf-online"></span>
               <span><i class="fa-regular fa-envelope"></i> <%= user ? user.email : 'you@example.com' %></span>
@@ -45,7 +75,7 @@
           <a href="#orders"><i class="fa-solid fa-box"></i> Orders <small>2</small></a>
           <a href="#addresses"><i class="fa-solid fa-location-dot"></i> Addresses</a>
           <a href="#payments"><i class="fa-regular fa-credit-card"></i> Payments</a>
-          <a href="#wishlist"><i class="fa-regular fa-heart"></i> Wishlist <small>2</small></a>
+          <a href="/wishlist"><i class="fa-regular fa-heart"></i> Wishlist</a>
           <a href="#security"><i class="fa-solid fa-shield-halved"></i> Security</a>
           <a href="/logout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Logout</a>
         </nav>
@@ -78,38 +108,24 @@
       <section class="pf-card" id="account">
         <div class="pf-card-hd"><strong>Account Details</strong><span class="pf-small pf-muted">Keep your info up to date</span></div>
         <div class="pf-card-bd">
-          <!-- NOTE: This posts to /profile which your editProfile controller handles -->
-          <form action="/profile" method="POST" enctype="multipart/form-data">
+          <!-- This now submits via AJAX in profile.js -->
+          <form id="pfAccountForm" action="/profile/update" method="POST">
             <div class="pf-grid-2">
               <div>
                 <label>Full Name</label>
-                <input name="fullName" value="<%= user ? (user.fullName || '') : '' %>" placeholder="Your name"/>
+                <input name="fullName" class="pf-input" value="<%= user ? (user.name || '') : '' %>" placeholder="Your name"/>
               </div>
               <div>
                 <label>Email</label>
-                <input name="email" type="email" value="<%= user ? (user.email || '') : '' %>" placeholder="you@example.com"/>
+                <input name="email" class="pf-input" type="email" value="<%= user ? (user.email || '') : '' %>" placeholder="you@example.com"/>
               </div>
               <div>
                 <label>Phone</label>
-                <input name="phone" value="<%= user ? (user.phone || '') : '' %>" placeholder="+91…"/>
-              </div>
-              <div>
-                <label>Date of Birth</label>
-                <input name="dob" type="date" value="<%= (user && user.dob) ? new Date(user.dob).toISOString().split('T')[0] : '' %>"/>
-              </div>
-              <div>
-                <label>Gender</label>
-                <select name="gender">
-                  <option <%= !user || !user.gender ? 'selected' : '' %>>Select</option>
-                  <option <%= user && user.gender === 'Male' ? 'selected' : '' %>>Male</option>
-                  <option <%= user && user.gender === 'Female' ? 'selected' : '' %>>Female</option>
-                  <option <%= user && user.gender === 'Other' ? 'selected' : '' %>>Other</option>
-                </select>
+                <input name="phone" class="pf-input" value="<%= user ? (user.phone || '') : '' %>" placeholder="+91…"/>
               </div>
               <div>
                 <label>Profile Image</label>
-                <!-- If your upload route is different, your JS can submit this to /profile/upload -->
-                <input name="avatar" id="avatar" type="file" accept="image/*"/>
+                <input name="avatar" id="avatar" class="pf-input" type="file" accept="image/*"/>
               </div>
             </div>
             <div class="pf-spacer-16"></div>
@@ -118,43 +134,33 @@
         </div>
       </section>
 
-      <!-- Orders (static - left as-is) -->
-      <!--
-      <section class="pf-card pf-mt" id="orders">
-        ...
-      </section>
-      -->
-
       <!-- Addresses -->
       <section class="pf-card pf-mt" id="addresses">
         <div class="pf-card-hd">
           <strong>Saved Addresses</strong>
-          <form action="/profile/addresses" method="POST" style="display:inline">
-            <button class="pf-btn" type="submit"><i class="fa-solid fa-plus"></i> Add New</button>
-          </form>
+          <button class="pf-btn" id="pfAddAddrOpen" type="button"><i class="fa-solid fa-plus"></i> Add New</button>
         </div>
         <div class="pf-card-bd">
-          <div class="pf-grid-2">
+          <div class="pf-grid-2" id="pfAddrGrid">
             <% if (addresses && addresses.address && addresses.address.length) { %>
               <% addresses.address.forEach(function(addr){ %>
-                <div class="pf-card pf-inner">
+                <div class="pf-card pf-inner" data-addr-id="<%= addr._id %>">
                   <div class="pf-card-bd">
                     <div class="pf-row-head" style="display:flex;justify-content:space-between;align-items:center">
-                      <div class="pf-semibold"><%= addr.label || 'Address' %></div>
-                      <% if (addr.isDefault) { %><span class="pf-tag">Default</span><% } %>
+                      <div class="pf-semibold"><%= addr.addressType || 'Address' %></div>
                     </div>
                     <div class="pf-muted pf-small pf-mt-6">
-                      <%= (addr.fullName || (user && user.fullName) || 'Guest User') %>,
+                      <%= addr.name || (user && user.name) || 'User' %>,
+                      <%= addr.apartment || '' %><%= addr.apartment ? ',' : '' %>
+                      <%= addr.building || '' %><%= addr.building ? ',' : '' %>
                       <%= addr.street || '' %><%= addr.street ? ',' : '' %>
                       <%= addr.city || '' %><%= addr.city ? ',' : '' %>
                       <%= addr.state || '' %> - <%= addr.zip || '' %>
                     </div>
                     <div class="pf-inline pf-mt">
-                      <!-- Edit (POST to keep buttons; profile.js can intercept to open a modal) -->
                       <form action="/profile/addresses/edit?id=<%= addr._id %>" method="POST">
                         <button class="pf-btn" type="submit"><i class="fa-regular fa-pen-to-square"></i> Edit</button>
                       </form>
-                      <!-- Delete -->
                       <form action="/profile/addresses/delete?id=<%= addr._id %>" method="POST">
                         <button class="pf-btn pf-danger" type="submit"><i class="fa-regular fa-trash-can"></i> Remove</button>
                       </form>
@@ -173,39 +179,22 @@
         </div>
       </section>
 
-      <!-- Payments (static) -->
-
-      <!-- Wishlist (static) -->
-      <!--
-      <section class="pf-card pf-mt" id="wishlist">
-        ...
-      </section>
-      -->
-
       <!-- Security -->
       <section class="pf-card pf-mt" id="security">
         <div class="pf-card-hd"><strong>Security</strong><span class="pf-small pf-muted">Manage password & devices</span></div>
         <div class="pf-card-bd">
-          <form action="/profile/security" method="POST" class="pf-grid-2">
+          <form action="/profile/change-password" method="POST" class="pf-grid-2">
             <div>
               <label>Current Password</label>
-              <input type="password" name="currentPassword" placeholder="••••••••"/>
+              <input type="password" class="pf-input" name="currentPassword" placeholder="••••••••"/>
             </div>
             <div>
               <label>New Password</label>
-              <input type="password" name="newPassword" placeholder="Min 8 characters"/>
+              <input type="password" class="pf-input" name="newPassword" placeholder="Min 8 characters"/>
             </div>
             <div>
               <label>Confirm New Password</label>
-              <input type="password" name="confirmPassword" placeholder="Re-enter new password"/>
-            </div>
-            <div>
-              <label>Two-Factor Auth</label>
-              <select name="tfa">
-                <option <%= !user || !user.tfa || user.tfa === 'Off' ? 'selected' : '' %>>Off</option>
-                <option <%= user && user.tfa === 'SMS' ? 'selected' : '' %>>SMS</option>
-                <option <%= user && user.tfa === 'Authenticator App' ? 'selected' : '' %>>Authenticator App</option>
-              </select>
+              <input type="password" class="pf-input" name="confirmPassword" placeholder="Re-enter new password"/>
             </div>
             <div class="pf-align-end">
               <button class="pf-btn pf-gold" type="submit"><i class="fa-solid fa-lock"></i> Update Security</button>
@@ -217,6 +206,236 @@
   </div>
 </div>
 
-<script src="public/js/profile.js"></script>
-<%- include('../partials/footer') %>
+<!-- Modal + Backdrop -->
+<div class="pf-backdrop pf-hidden" id="pfAddrBackdrop"></div>
+<div class="pf-modal pf-hidden" id="pfAddrModal" aria-hidden="true">
+  <div class="pf-card">
+    <div class="pf-card-hd">
+      <strong>Add Address</strong>
+      <button class="pf-btn" id="pfAddAddrClose" type="button" aria-label="Close"><i class="fa-regular fa-circle-xmark"></i></button>
+    </div>
+    <div class="pf-card-bd">
+      <form id="pfAddAddrForm">
+        <div class="pf-grid-2">
+          <div>
+            <label>Address Type</label>
+            <select name="addressType" class="pf-select" required>
+              <option value="Home">Home</option>
+              <option value="Work">Work</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label>Name</label>
+            <input class="pf-input" name="name" placeholder="Full name" required />
+          </div>
+          <div>
+            <label>Apartment</label>
+            <input class="pf-input" name="apartment" placeholder="Apartment / Flat No" required />
+          </div>
+          <div>
+            <label>Building</label>
+            <input class="pf-input" name="building" placeholder="Building / House Name" required />
+          </div>
+          <div>
+            <label>Street</label>
+            <input class="pf-input" name="street" placeholder="Street / Area" required />
+          </div>
+          <div>
+            <label>Landmark</label>
+            <input class="pf-input" name="landmark" placeholder="Nearby landmark" required />
+          </div>
+          <div>
+            <label>City</label>
+            <input class="pf-input" name="city" placeholder="City" required />
+          </div>
+          <div>
+            <label>State</label>
+            <input class="pf-input" name="state" placeholder="State" required />
+          </div>
+          <div>
+            <label>Country</label>
+            <input class="pf-input" name="country" placeholder="Country" required />
+          </div>
+          <div>
+            <label>Pincode</label>
+            <input class="pf-input" name="zip" placeholder="PIN / ZIP" required />
+          </div>
+          <div>
+            <label>Phone</label>
+            <input class="pf-input" name="phone" placeholder="Phone number" required />
+          </div>
+          <div>
+            <label>Alternate Phone</label>
+            <input class="pf-input" name="altPhone" placeholder="Alternate phone" required />
+          </div>
+        </div>
+        <div class="pf-actions">
+          <button class="pf-btn" type="button" id="pfAddAddrCancel">Cancel</button>
+          <button class="pf-btn pf-gold" type="submit"><i class="fa-solid fa-plus"></i> Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
+<script src="/public/js/profile.js"></script>
+<script>
+  (function () {
+  // Helpers
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+  // ---------- Account update (AJAX) ----------
+  const accountForm = $("#pfAccountForm");
+  if (accountForm) {
+    accountForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      // send text fields via JSON
+      const formData = new FormData(accountForm);
+      const payload = {
+        fullName: formData.get("fullName")?.trim(),
+        email: formData.get("email")?.trim(),
+        phone: formData.get("phone")?.trim(),
+      };
+
+      try {
+        const res = await fetch("/profile/update", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+          },
+          credentials: "same-origin",
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.message || "Failed");
+
+        // If user selected an avatar file, upload it in a separate call
+        const file = $("#avatar")?.files?.[0];
+        if (file) {
+          const up = new FormData();
+          up.append("avatar", file);
+          const upRes = await fetch("/profile/upload", {
+            method: "POST",
+            credentials: "same-origin",
+            body: up,
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+          });
+          if (!upRes.ok) console.warn("Avatar upload failed");
+        }
+
+        alert("Profile updated!");
+        // Optionally refresh to reflect avatar
+        window.location.reload();
+      } catch (err) {
+        console.error(err);
+        alert("Could not update profile.");
+      }
+    });
+  }
+
+  // ---------- Address Modal ----------
+  const modal = $("#pfAddrModal");
+  const backdrop = $("#pfAddrBackdrop");
+  const openBtn = $("#pfAddAddrOpen");
+  const closeBtn = $("#pfAddAddrClose");
+  const cancelBtn = $("#pfAddAddrCancel");
+  const form = $("#pfAddAddrForm");
+  const grid = $("#pfAddrGrid");
+
+  function showModal() {
+    modal.classList.remove("pf-hidden");
+    backdrop.classList.remove("pf-hidden");
+    modal.setAttribute("aria-hidden", "false");
+    $(".pf-input, .pf-select", modal)?.focus?.();
+  }
+  function hideModal() {
+    modal.classList.add("pf-hidden");
+    backdrop.classList.add("pf-hidden");
+    modal.setAttribute("aria-hidden", "true");
+    form?.reset?.();
+  }
+
+  openBtn?.addEventListener("click", showModal);
+  closeBtn?.addEventListener("click", hideModal);
+  cancelBtn?.addEventListener("click", hideModal);
+  backdrop?.addEventListener("click", hideModal);
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !modal.classList.contains("pf-hidden")) {
+      hideModal();
+    }
+  });
+
+  // Submit Add Address via AJAX
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const fd = new FormData(form);
+    const payload = Object.fromEntries(fd.entries());
+
+    try {
+      const res = await fetch("/profile/addresses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        credentials: "same-origin",
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Failed to add address");
+      }
+
+      const addr = data.address;
+
+      // Build new card
+      const card = document.createElement("div");
+      card.className = "pf-card pf-inner";
+      card.setAttribute("data-addr-id", addr._id);
+      card.innerHTML = `
+        <div class="pf-card-bd">
+          <div class="pf-row-head" style="display:flex;justify-content:space-between;align-items:center">
+            <div class="pf-semibold">${addr.addressType || "Address"}</div>
+          </div>
+          <div class="pf-muted pf-small pf-mt-6">
+            ${addr.name || "User"},
+            ${addr.apartment || ""}${addr.apartment ? "," : ""}
+            ${addr.building || ""}${addr.building ? "," : ""}
+            ${addr.street || ""}${addr.street ? "," : ""}
+            ${addr.city || ""}${addr.city ? "," : ""}
+            ${addr.state || ""} - ${addr.zip || ""}
+          </div>
+          <div class="pf-inline pf-mt">
+            <form action="/profile/addresses/edit?id=${addr._id}" method="POST">
+              <button class="pf-btn" type="submit"><i class="fa-regular fa-pen-to-square"></i> Edit</button>
+            </form>
+            <form action="/profile/addresses/delete?id=${addr._id}" method="POST">
+              <button class="pf-btn pf-danger" type="submit"><i class="fa-regular fa-trash-can"></i> Remove</button>
+            </form>
+          </div>
+        </div>
+      `;
+
+      // Remove "No saved addresses" placeholder if present
+      const placeholder = grid.querySelector(".pf-card.pf-inner:not([data-addr-id])");
+      if (placeholder) placeholder.remove();
+
+      grid.appendChild(card);
+
+      hideModal();
+    } catch (err) {
+      console.error(err);
+      alert("Could not add address. Please try again.");
+    }
+  });
+})();
+
+</script>
+</body>
+</html>

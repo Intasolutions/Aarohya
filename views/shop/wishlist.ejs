@@ -1,352 +1,194 @@
-  <%- include('../partials/header') %>
-  <style>
+<%- include('../partials/header', { active: 'wishlist', pageTitle: 'My Wishlist' }) %>
 
+<link rel="stylesheet" href="/public/css/wishlist.css">
 
-
-    /* Main Content */
-    .wishlist-container {
-      max-width: 1200px;
-      margin: 40px auto;
-      background-color: var(--light);
-      border-radius: 16px;
-      box-shadow: 0 8px 24px var(--shadow);
-      padding: 40px;
-      animation: fadeIn 0.5s ease-in-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .wishlist-container h2 {
-      color: var(--dark);
-      font-size: 2.2rem;
-      font-weight: 600;
-      text-align: center;
-      margin-bottom: 30px;
-      padding-bottom: 15px;
-      border-bottom: 3px solid var(--border);
-      letter-spacing: 0.5px;
-    }
-
-    .wishlist-grid {
-      display: grid;
-      gap: 24px;
-    }
-
-    .wishlist-card {
-      display: flex;
-      align-items: center;
-      background: var(--light);
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 4px 16px var(--shadow);
-      transition: var(--transition);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .wishlist-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 8px 24px var(--shadow);
-    }
-
-    .wishlist-image {
-      width: 160px;
-      height: auto;
-      border-radius: 10px;
-      margin-right: 24px;
-      object-fit: cover;
-      transition: var(--transition);
-    }
-
-    .wishlist-image:hover {
-      transform: scale(1.05);
-    }
-
-    .wishlist-content {
-      flex: 1;
-    }
-
-    .wishlist-content h3 {
-      color: var(--dark);
-      font-size: 1.4rem;
-      font-weight: 500;
-      margin-bottom: 8px;
-      line-height: 1.4;
-    }
-
-    .assured-badge {
-      display: inline-flex;
-      align-items: center;
-      background: var(--accent);
-      color: var(--dark);
-      font-weight: 600;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      margin-bottom: 12px;
-    }
-
-    .price {
-      font-size: 1.3rem;
-      font-weight: 600;
-      color: var(--primary);
-      margin-bottom: 8px;
-    }
-
-    .price del {
-      color: var(--secondary);
-      font-weight: 400;
-      margin-left: 12px;
-      font-size: 0.95rem;
-    }
-
-    .discount {
-      color: #2E7D32;
-      font-weight: 500;
-      margin-left: 12px;
-      font-size: 0.95rem;
-    }
-
-    .unavailable {
-      color: var(--secondary);
-      font-style: italic;
-      font-size: 0.9rem;
-      margin-top: 8px;
-    }
-
-    .action-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .add-to-cart, .delete-button {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: var(--transition);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .add-to-cart {
-      background: var(--primary);
-      color: var(--light);
-    }
-
-    .add-to-cart:hover {
-      background: var(--hover-primary);
-      transform: translateY(-2px);
-    }
-
-    .add-to-cart:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-    }
-
-    .delete-button {
-      background: var(--secondary);
-      color: var(--light);
-    }
-
-    .delete-button:hover {
-      background: var(--hover-accent);
-      transform: translateY(-2px);
-    }
-
-    .loading::after {
-      content: '';
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid var(--light);
-      border-radius: 50%;
-      border-top-color: transparent;
-      animation: spin 0.8s linear infinite;
-      margin-left: 8px;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-      .wishlist-container {
-        padding: 20px;
-        margin: 20px;
-      }
-
-      .wishlist-card {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 16px;
-      }
-
-      .wishlist-image {
-        width: 100%;
-        max-width: 200px;
-        margin: 0 auto;
-      }
-
-      .action-buttons {
-        width: 100%;
-        flex-direction: row;
-        justify-content: space-between;
-      }
-
-      .add-to-cart, .delete-button {
-        flex: 1;
-        text-align: center;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .wishlist-container h2 {
-        font-size: 1.8rem;
-      }
-
-      .wishlist-content h3 {
-        font-size: 1.2rem;
-      }
-
-      .price {
-        font-size: 1.1rem;
-      }
-    }
-  </style>
-
-
-
-<main>
-  <div class="wishlist-container">
-    <h2>My Wishlist (<%= wishlist.length %>)</h2>
-<div class="wishlist-grid">
-  <% if (wishlist.length === 0) { %>
-    <p>Your wishlist is empty.</p>
-  <% } else { %>
-    <% wishlist.forEach(product => { %>
-      <div class="wishlist-card">
-        <img src="<%= product.productImage[0] %>" alt="<%= product.productName %>" class="wishlist-image" />
-
-        <div class="wishlist-content">
-          <h3><%= product.productName %></h3>
-          <% if (product.category) { %>
-            <span class="assured-badge"><%= product.category.name %></span>
-          <% } %>
-          <p class="price">
-            ₹<%= product.salePrice || product.regularPrice %>
-            <% if(product.salePrice && product.salePrice < product.regularPrice){ %>
-              <del>₹<%= product.regularPrice %></del>
-              <span class="discount">
-                <%= Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100) %>% off
-              </span>
-            <% } %>
-          </p>
-          <% if(product.isBlocked){ %>
-            <p class="unavailable">Currently unavailable</p>
-          <% } %>
-        </div>
-
-        <div class="action-buttons">
-          <button class="add-to-cart" data-id="<%= product._id %>" <%= product.isBlocked ? 'disabled' : '' %>>
-            <i class="fas fa-cart-plus"></i> Add to Cart
-          </button>
-          <button class="delete-button" data-id="<%= product._id %>">
-            <i class="fas fa-trash"></i> Remove
-          </button>
-        </div>
+<div class="wl-wrap">
+  <div class="wl-hero">
+    <div>
+      <div class="wl-title">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 21s-7-4.438-7-10A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 7 4c0 5.562-7 10-7 10Z" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+        My Wishlist
       </div>
-    <% }) %>
+      <div class="wl-sub">
+        <%= (wishlist && wishlist.length) ? `${wishlist.length} item${wishlist.length>1?'s':''} saved for later` : 'Nothing saved yet — let’s find you something beautiful.' %>
+      </div>
+    </div>
+    <div class="wl-ctas">
+      <a href="/shop" class="wl-btn"><i class="fa-solid fa-arrow-left"></i> Continue Shopping</a>
+      <a href="/cart" class="wl-btn primary"><i class="fa-solid fa-cart-shopping"></i> Go to Cart</a>
+    </div>
+  </div>
+
+  <div class="wl-toolbar">
+    <div class="wl-count">
+      <i class="fa-regular fa-heart"></i>
+      <span><%= (wishlist && wishlist.length) ? `${wishlist.length} item${wishlist.length>1?'s':''}` : '0 items' %></span>
+    </div>
+    <div>
+      <select class="wl-select" id="wlSort">
+        <option value="new">Newest</option>
+        <option value="priceLow">Price: Low to High</option>
+        <option value="priceHigh">Price: High to Low</option>
+        <option value="name">Name</option>
+      </select>
+    </div>
+  </div>
+
+  <% if (wishlist && wishlist.length) { %>
+    <div class="wl-grid" id="wlGrid">
+      <% wishlist.forEach(function(p){ 
+          const hasOffer = typeof p.salePrice === 'number' && p.salePrice < p.regularPrice;
+          const discount = hasOffer ? Math.round(((p.regularPrice - p.salePrice)/p.regularPrice)*100) : 0;
+          const firstImg = (p.productImage && p.productImage.length) ? ('/public' + p.productImage[0]) : 'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?q=80&w=600';
+      %>
+        <div class="wl-card" data-name="<%= p.productName %>" data-price="<%= hasOffer ? p.salePrice : p.regularPrice %>">
+          <div class="wl-img-wrap">
+            <a href="/product/<%= p._id %>">
+              <img class="wl-img" src="<%= firstImg %>" alt="<%- p.productName %>" />
+            </a>
+            <% if (p.category || p.subcategory) { %>
+              <span class="wl-badge"><%= (p.category && p.category.name) || (p.subcategory && p.subcategory.name) || 'Featured' %></span>
+            <% } %>
+            <div class="wl-like">
+              <button class="wl-icon-btn danger js-remove" data-id="<%= p._id %>" title="Remove from wishlist">
+                <i class="fa-regular fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+          <div class="wl-body">
+            <a class="wl-name" href="/product/<%= p._id %>"><%- p.productName %></a>
+            <div class="wl-meta">
+              <% if (p.category) { %><span><%= p.category.name %></span><% } %>
+              <% if (p.subcategory) { %><span class="wl-dot"></span><span><%= p.subcategory.name %></span><% } %>
+            </div>
+            <div class="wl-price">
+              <div class="wl-price-now">₹<%= (hasOffer ? p.salePrice : p.regularPrice).toLocaleString('en-IN') %></div>
+              <% if (hasOffer) { %>
+                <div class="wl-price-old">₹<%= p.regularPrice.toLocaleString('en-IN') %></div>
+                <span class="wl-chip-off"><%= discount %>% off</span>
+              <% } %>
+            </div>
+            <div class="wl-actions">
+              <button class="wl-add js-move-cart" data-id="<%= p._id %>">
+                <i class="fa-solid fa-cart-plus"></i> Move to Cart
+              </button>
+              <button class="wl-remove js-remove" data-id="<%= p._id %>">
+                <i class="fa-regular fa-heart"></i> Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+
+    <% if (totalPages && totalPages > 1) { %>
+      <div class="wl-pager">
+        <a class="wl-page <%= currentPage === 1 ? 'disabled' : '' %>" href="?page=<%= currentPage - 1 %>">Prev</a>
+        <% for (let i = 1; i <= totalPages; i++) { %>
+          <a class="wl-page <%= currentPage === i ? 'active' : '' %>" href="?page=<%= i %>"><%= i %></a>
+        <% } %>
+        <a class="wl-page <%= currentPage === totalPages ? 'disabled' : '' %>" href="?page=<%= currentPage + 1 %>">Next</a>
+      </div>
+    <% } %>
+  <% } else { %>
+    <div class="wl-empty">
+      <div style="font-size:18px; font-weight:700; color:#fff; margin-bottom:8px;">Your wishlist is empty</div>
+      <div style="margin-bottom:16px;">Save items you love — they’ll live here for quick access.</div>
+      <a class="wl-btn primary" href="/shop"><i class="fa-solid fa-compass"></i> Explore Products</a>
+    </div>
   <% } %>
 </div>
 
-  </div>
+<script src="/public/js/wishlist.js"></script>
+<script>// /public/js/wishlist.js
+(function () {
+  const grid = document.getElementById("wlGrid");
 
-  <!-- Pagination -->
-  <% if (totalPages > 1) { %>
-    <div class="pagination">
-      <% for (let i = 1; i <= totalPages; i++) { %>
-        <a href="/wishlist?page=<%= i %>" class="<%= i === currentPage ? 'active' : '' %>"><%= i %></a>
-      <% } %>
-    </div>
-  <% } %>
-</main>
-
-<script>
-  document.querySelectorAll('.delete-button').forEach(button => {
-    button.addEventListener('click', () => {
-      button.classList.add('loading');
-      button.disabled = true;
-      setTimeout(() => {
-        button.classList.remove('loading');
-        button.disabled = false;
-      }, 1500);
-    });
-  });
-</script>
-<script>
-document.querySelectorAll('.delete-button').forEach(button => {
-  button.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const productId = button.dataset.id;
-
-    button.classList.add('loading');
-    button.disabled = true;
+  // Remove from wishlist
+  document.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".js-remove");
+    if (!btn) return;
+    const id = btn.dataset.id;
 
     try {
-      const res = await fetch(`/wishlist/${productId}`, {
-        method: 'DELETE',
-        credentials: 'include' // to send cookies for JWT
+      const res = await fetch(`/wishlist/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest"
+        }
       });
-      const data = await res.json();
-      alert(data.message);
 
-      if (data.success) {
-        // Remove the card from DOM
-        button.closest('.wishlist-card').remove();
+      if (res.status === 401) {
+        const next = encodeURIComponent(window.location.pathname);
+        window.location.href = `/auth/login?next=${next}`;
+        return;
       }
-    } catch(err) {
-      console.error(err);
-      button.classList.remove('loading');
-      button.disabled = false;
-    }
-  });
-});
-</script>
-<script>
-document.querySelectorAll('.add-to-cart').forEach(btn => {
-  btn.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const productId = btn.dataset.id;
 
-    btn.disabled = true;
-    btn.classList.add('loading');
+      const data = await res.json().catch(() => ({}));
+      if (!data.success) throw new Error(data.message || "Failed");
 
-    try {
-      const res = await fetch(`/cart/add/${productId}`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-      const data = await res.json();
-      alert(data.message);
+      // Remove card from DOM
+      const card = btn.closest(".wl-card");
+      if (card) card.remove();
+
+      // Update counts / empty state
+      const countEl = document.querySelector(".wl-count span");
+      if (countEl) {
+        const current = grid ? grid.querySelectorAll(".wl-card").length : 0;
+        countEl.textContent = current ? `${current} item${current > 1 ? "s" : ""}` : "0 items";
+      }
+      if (!grid || !grid.querySelector(".wl-card")) {
+        window.location.reload(); // simplest to reveal empty state/pager changes
+      }
     } catch (err) {
       console.error(err);
-    } finally {
-      btn.classList.remove('loading');
-      btn.disabled = false;
+      alert("Could not remove item. Please try again.");
     }
   });
-});
-</script>
 
-  <%- include('../partials/footer') %>
+  // Move to cart (server handles add; we then remove from wishlist)
+  document.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".js-move-cart");
+    if (!btn) return;
+    const id = btn.dataset.id;
+
+    try {
+      // If you have a JSON cart API, call it here.
+      // For now, redirect so your existing POST route handles it:
+      window.location.href = `/cart/add/${id}?from=wishlist`;
+    } catch (err) {
+      console.error(err);
+      alert("Could not move item to cart.");
+    }
+  });
+
+  // Optional: sort client-side
+  const sortSel = document.getElementById("wlSort");
+  if (sortSel && grid) {
+    sortSel.addEventListener("change", () => {
+      const cards = Array.from(grid.querySelectorAll(".wl-card"));
+      const v = sortSel.value;
+
+      cards.sort((a, b) => {
+        if (v === "name") {
+          return a.dataset.name.localeCompare(b.dataset.name);
+        }
+        if (v === "priceLow") {
+          return Number(a.dataset.price) - Number(b.dataset.price);
+        }
+        if (v === "priceHigh") {
+          return Number(b.dataset.price) - Number(a.dataset.price);
+        }
+        // newest: leave as-is (server order)
+        return 0;
+      });
+
+      cards.forEach((c) => grid.appendChild(c));
+    });
+  }
+})();
+</script>
+<%- include('../partials/footer') %>

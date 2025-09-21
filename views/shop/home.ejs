@@ -1,4 +1,4 @@
-<%- include('../partials/header') %>
+<%- include('../partials/header', { active: 'Home', pageTitle: 'Home' }) %>
 
         <!-- Product Catagories Area Start -->
         <div class="products-catagories-area clearfix">
@@ -175,7 +175,9 @@
           <% } %>
         </div>
         <div class="amado-product-info text-center">
+          <a href="/product/<%=product._id%>">
           <h5><%= product.productName %></h5>
+          </a>
           <p class="price">₹<%= product.salePrice || product.regularPrice %></p>
         </div>
       </div>

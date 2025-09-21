@@ -3,32 +3,44 @@ const User = require("../models/User");
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
 
-// Protect user routes (requires login)
+
 exports.protect = async (req, res, next) => {
   try {
-    const token = req.cookies.token;
+    const token = req.cookies?.token;
+    const wantsJson =
+      req.xhr ||
+      req.headers["x-requested-with"] === "XMLHttpRequest" ||
+      req.headers["x-requested-with"] === "fetch" ||
+      (req.headers.accept || "").includes("application/json");
+
     if (!token) {
-      return res.redirect("/auth/login"); // fix redirect path
-    }
-
-    // Verify token
-    const decoded = jwt.verify(token, JWT_SECRET);
-
-    // Attach user to request
-    req.user = await User.findById(decoded.id).select("-password");
-
-    if (!req.user) {
-      res.clearCookie("token");
+      if (wantsJson) return res.status(401).json({ success: false, message: "Auth required" });
       return res.redirect("/auth/login");
     }
 
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await User.findById(decoded.id).select("-password");
+    if (!user) {
+      res.clearCookie("token");
+      if (wantsJson) return res.status(401).json({ success: false, message: "Auth required" });
+      return res.redirect("/auth/login");
+    }
+
+    req.user = user;
     next();
   } catch (error) {
     console.error("Auth Middleware Error:", error);
     res.clearCookie("token");
+    const wantsJson =
+      req.xhr ||
+      req.headers["x-requested-with"] === "XMLHttpRequest" ||
+      req.headers["x-requested-with"] === "fetch" ||
+      (req.headers.accept || "").includes("application/json");
+    if (wantsJson) return res.status(401).json({ success: false, message: "Auth required" });
     res.redirect("/auth/login");
   }
 };
+
 
 // Admin only (requires isAdmin true)
 exports.adminOnly = (req, res, next) => {

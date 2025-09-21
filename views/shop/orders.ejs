@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Your Orders</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="/public/img/core-img/favicon.ico" />
+  <link rel="stylesheet" href="/public/css/core-style.css" />
+  <link rel="stylesheet" href="/public/css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    :root{
+      --ink:#212529; --muted:#868e96; --soft:#f1f3f5; --ring:#e9ecef;
+      --brand:#b197fc; --ok:#2f9e44; --warn:#f08c00; --bad:#e03131; --ship:#4263eb;
+    }
+
+    /* Minimal, clean navbar */
+    .nv{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--soft)}
+    .nv-w{max-width:1150px;margin:0 auto;display:flex;align-items:center;gap:16px;padding:12px 16px}
+    .nv a{color:var(--ink);text-decoration:none}
+    .nv-logo{display:flex;align-items:center;gap:10px;font-weight:800}
+    .nv-logo img{height:30px}
+    .nv-grow{flex:1}
+    .nv-menu a{margin:0 8px;color:#495057}
+    .nv-cta a{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--ring);padding:8px 12px;border-radius:999px}
+
+    .wrap{max-width:1150px;margin:22px auto;padding:0 16px}
+    .hdline{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:14px}
+    .hdline h2{margin:0}
+    .hd-sub{color:var(--muted);font-size:14px}
+
+    .filterbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 18px}
+    .filterbar input, .filterbar select{
+      border:1px solid var(--ring); border-radius:10px; padding:10px 12px; outline:none;
+    }
+    .filterbar button{
+      border:1px solid var(--ring); border-radius:10px; padding:10px 14px; background:#fff; cursor:pointer;
+    }
+    .filterbar .apply{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+    /* Cards grid */
+    .grid{display:grid;grid-template-columns: repeat(2,1fr); gap:14px}
+    @media (max-width: 900px){.grid{grid-template-columns:1fr}}
+    .card{border:1px solid var(--soft); border-radius:14px; background:#fff; box-shadow:0 8px 26px rgba(0,0,0,.04)}
+    .card-hd{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:14px 14px 0}
+    .card-bd{padding:12px 14px 14px}
+
+    .status{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;font-weight:700;border:1px solid transparent}
+    .st-pending{background:#fff8e1;border-color:#ffe8a1;color:#9c6f00}
+    .st-processing{background:#eef4ff;border-color:#dce4ff;color:#364fc7}
+    .st-shipped{background:#eef4ff;border-color:#dce4ff;color:#4263eb}
+    .st-delivered{background:#e9f9ef;border-color:#c7f2d6;color:#2f9e44}
+    .st-cancelled{background:#fff1f3;border-color:#ffd6de;color:#e03131}
+    .st-return{background:#fff4e6;border-color:#ffe8cc;color:#d9480f}
+
+    .meta{display:flex;gap:18px;flex-wrap:wrap;color:#495057;font-size:14px;margin:10px 0}
+    .meta span{white-space:nowrap}
+    .items{display:flex;gap:10px;overflow:auto;padding-bottom:6px}
+    .chip{border:1px solid var(--ring);border-radius:10px;padding:6px 8px;display:flex;gap:8px;align-items:center;min-width:0}
+    .chip img{width:44px;height:44px;border-radius:8px;object-fit:cover;border:1px solid var(--soft)}
+    .sum{display:flex;justify-content:space-between;border-top:1px dashed var(--ring);padding-top:10px;margin-top:10px}
+    .sum b{font-size:16px}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:8px 12px;border:1px solid var(--ring);text-decoration:none;color:#343a40;background:#fff}
+    .btn-primary{background:var(--brand);border-color:var(--brand);color:#fff}
+    .btn-ghost{background:#fff}
+    .empty{border:2px dashed var(--soft);border-radius:16px;padding:26px;text-align:center;color:#868e96}
+
+    /* Pagination */
+    .pagi{display:flex;gap:6px;justify-content:flex-end;align-items:center;margin-top:18px}
+    .pagi a,.pagi span{border:1px solid var(--ring);border-radius:8px;padding:6px 10px;text-decoration:none;color:#343a40}
+    .pagi .on{background:var(--brand);border-color:var(--brand);color:#fff}
+  </style>
+</head>
+<body>
+  <!-- Simple Navbar -->
+  <div class="nv">
+    <div class="nv-w">
+      <a class="nv-logo" href="/"><img src="/public/img/core-img/logo.png" alt="Logo"> Aarohya</a>
+      <div class="nv-grow"></div>
+      <div class="nv-menu">
+        <a href="/">Home</a>
+        <a href="/shop">Shop</a>
+        <a href="/cart">Cart</a>
+        <a href="/orders"><strong>Orders</strong></a>
+      </div>
+      <div class="nv-cta">
+        <% if (user) { %>
+          <a href="/profile"><i class="fa-regular fa-user"></i> <%= user.name || user.email %></a>
+        <% } else { %>
+          <a href="/auth/login"><i class="fa-regular fa-circle-user"></i> Sign in</a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="hdline">
+      <div>
+        <h2>Your Orders</h2>
+        <div class="hd-sub"><%= total %> order<%= total === 1 ? '' : 's' %> found</div>
+      </div>
+    </div>
+
+    <!-- Filter / Search -->
+    <form class="filterbar" method="GET">
+      <input type="text" name="q" placeholder="Search orders, product names, ID…" value="<%= (filters && filters.q) || '' %>" />
+      <select name="status">
+        <option value="">All Status</option>
+        <% const ST = ["Pending","Processing","Shipped","Delivered","Cancelled","Return Requested","Returning","Returned"]; %>
+        <% ST.forEach(s => { 
+             const cur = (filters && filters.status) ? String(filters.status).toLowerCase() : "";
+             const val = s.toLowerCase();
+        %>
+          <option value="<%= s %>" <%= cur === val ? 'selected' : '' %>><%= s %></option>
+        <% }) %>
+      </select>
+      <select name="limit">
+        <% [10,12,16,20,24].forEach(n => { %>
+          <option value="<%= n %>" <%= (Number(limit)===n ? 'selected' : '') %>><%= n %> / page</option>
+        <% }) %>
+      </select>
+      <button class="apply" type="submit"><i class="fa fa-filter"></i> Apply</button>
+      <a class="btn" href="/orders"><i class="fa fa-rotate-left"></i> Reset</a>
+    </form>
+
+    <% if (!orders || !orders.length) { %>
+      <div class="empty">
+        <p>No orders yet.</p>
+        <a class="btn btn-primary" href="/shop"><i class="fa fa-shopping-bag"></i> Start Shopping</a>
+      </div>
+    <% } else { %>
+      <div class="grid">
+        <% orders.forEach(function(order){ 
+             const items = order.items || order.orderedItems || [];
+             const subTotal = (order.totals && order.totals.subtotal) ?? order.totalPrice ?? 0;
+             const grand = (order.totals && order.totals.grandTotal) ?? order.finalAmount ?? order.amount ?? subTotal;
+             const disc  = (order.totals && order.totals.discountAmount) ?? order.discount ?? 0;
+             const ship  = (order.totals && order.totals.shippingFee) ?? order.shippingFee ?? 0;
+             const status = String(order.status || '').toLowerCase();
+             const statusClass =
+                status.includes('cancel') ? 'st-cancelled' :
+                status.includes('deliver') ? 'st-delivered' :
+                status.includes('ship') ? 'st-shipped' :
+                status.includes('process') ? 'st-processing' :
+                status.includes('return') ? 'st-return' : 'st-pending';
+        %>
+        <div class="card">
+          <div class="card-hd">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <span class="status <%= statusClass %>">
+                <i class="fa fa-circle-dot"></i>
+                <%= order.status || 'Pending' %>
+              </span>
+              <small style="color:var(--muted)">Order #<%= order.orderId || order._id %></small>
+            </div>
+            <small style="color:var(--muted)"><i class="fa-regular fa-clock"></i> <%= new Date(order.createdAt).toLocaleString() %></small>
+          </div>
+
+          <div class="card-bd">
+            <div class="items" title="Items in this order">
+              <% items.forEach(function(it){ 
+                   const name = it.productName || (it.product && it.product.productName) || 'Product';
+                   const img  = it.image || it.productImage || (it.product && it.product.productImage && it.product.productImage[0]) || 'img/bg-img/cart1.jpg';
+                   const qty  = it.quantity || 1;
+                   const clr  = it.color || (it.product && it.product.color) || '';
+              %>
+                <div class="chip">
+                  <img src="/public/<%= img %>" alt="">
+                  <div style="min-width:120px">
+                    <div style="font-weight:600;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= name %></div>
+                    <small class="text-muted">Qty: <%= qty %> <% if (clr) { %> • <%= clr %><% } %></small>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+
+            <div class="meta">
+              <span><i class="fa fa-receipt"></i> Subtotal: ₹<%= subTotal %></span>
+              <span><i class="fa fa-percent"></i> Discount: ₹<%= disc %></span>
+              <span><i class="fa fa-truck"></i> Shipping: <%= ship ? ('₹' + ship) : 'Free' %></span>
+            </div>
+
+            <div class="sum">
+              <div>
+                <small class="text-muted">Deliver to</small><br/>
+                <% const A = order.address || {}; %>
+                <div style="max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                  <%= [A.name, [A.apartment, A.building, A.street].filter(Boolean).join(' '), [A.city, A.state].filter(Boolean).join(', ')].filter(Boolean).join(' · ') %>
+                </div>
+              </div>
+              <div>
+                <small class="text-muted">Total</small><br/>
+                <b>₹<%= grand %></b>
+              </div>
+            </div>
+
+            <div class="actions">
+              <a class="btn btn-primary" href="/orders/<%= order._id %>"><i class="fa fa-eye"></i> View Details</a>
+              <% if (status === 'pending' || status === 'processing') { %>
+                <a class="btn btn-ghost" href="/orders/<%= order._id %>/cancel"><i class="fa fa-ban"></i> Cancel</a>
+              <% } %>
+              <a class="btn btn-ghost" href="/orders/<%= order._id %>/invoice"><i class="fa fa-file-invoice"></i> Invoice</a>
+              <% if (status === 'delivered') { %>
+                <a class="btn btn-ghost" href="/orders/<%= order._id %>/return"><i class="fa fa-undo"></i> Return</a>
+              <% } %>
+            </div>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagi">
+        <% 
+          function qs(p){
+            const u = new URLSearchParams();
+            if (filters && filters.q) u.set('q', filters.q);
+            if (filters && filters.status) u.set('status', filters.status);
+            if (limit) u.set('limit', String(limit));
+            u.set('page', String(p));
+            return '/orders?' + u.toString();
+          }
+        %>
+        <% if (page > 1) { %>
+          <a href="<%= qs(page-1) %>"><i class="fa fa-chevron-left"></i></a>
+        <% } %>
+        <% for (let i = 1; i <= totalPages; i++) { %>
+          <% if (i === page) { %>
+            <span class="on"><%= i %></span>
+          <% } else { %>
+            <a href="<%= qs(i) %>"><%= i %></a>
+          <% } %>
+        <% } %>
+        <% if (page < totalPages) { %>
+          <a href="<%= qs(page+1) %>"><i class="fa fa-chevron-right"></i></a>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+</body>
+</html>

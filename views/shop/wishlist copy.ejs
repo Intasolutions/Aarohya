@@ -1,0 +1,352 @@
+  <%- include('../partials/header') %>
+  <style>
+
+
+
+    /* Main Content */
+    .wishlist-container {
+      max-width: 1200px;
+      margin: 40px auto;
+      background-color: var(--light);
+      border-radius: 16px;
+      box-shadow: 0 8px 24px var(--shadow);
+      padding: 40px;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .wishlist-container h2 {
+      color: var(--dark);
+      font-size: 2.2rem;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 3px solid var(--border);
+      letter-spacing: 0.5px;
+    }
+
+    .wishlist-grid {
+      display: grid;
+      gap: 24px;
+    }
+
+    .wishlist-card {
+      display: flex;
+      align-items: center;
+      background: var(--light);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 16px var(--shadow);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .wishlist-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 8px 24px var(--shadow);
+    }
+
+    .wishlist-image {
+      width: 160px;
+      height: auto;
+      border-radius: 10px;
+      margin-right: 24px;
+      object-fit: cover;
+      transition: var(--transition);
+    }
+
+    .wishlist-image:hover {
+      transform: scale(1.05);
+    }
+
+    .wishlist-content {
+      flex: 1;
+    }
+
+    .wishlist-content h3 {
+      color: var(--dark);
+      font-size: 1.4rem;
+      font-weight: 500;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .assured-badge {
+      display: inline-flex;
+      align-items: center;
+      background: var(--accent);
+      color: var(--dark);
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      margin-bottom: 12px;
+    }
+
+    .price {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .price del {
+      color: var(--secondary);
+      font-weight: 400;
+      margin-left: 12px;
+      font-size: 0.95rem;
+    }
+
+    .discount {
+      color: #2E7D32;
+      font-weight: 500;
+      margin-left: 12px;
+      font-size: 0.95rem;
+    }
+
+    .unavailable {
+      color: var(--secondary);
+      font-style: italic;
+      font-size: 0.9rem;
+      margin-top: 8px;
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .add-to-cart, .delete-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .add-to-cart {
+      background: var(--primary);
+      color: var(--light);
+    }
+
+    .add-to-cart:hover {
+      background: var(--hover-primary);
+      transform: translateY(-2px);
+    }
+
+    .add-to-cart:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .delete-button {
+      background: var(--secondary);
+      color: var(--light);
+    }
+
+    .delete-button:hover {
+      background: var(--hover-accent);
+      transform: translateY(-2px);
+    }
+
+    .loading::after {
+      content: '';
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--light);
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 0.8s linear infinite;
+      margin-left: 8px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .wishlist-container {
+        padding: 20px;
+        margin: 20px;
+      }
+
+      .wishlist-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+      }
+
+      .wishlist-image {
+        width: 100%;
+        max-width: 200px;
+        margin: 0 auto;
+      }
+
+      .action-buttons {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+      }
+
+      .add-to-cart, .delete-button {
+        flex: 1;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .wishlist-container h2 {
+        font-size: 1.8rem;
+      }
+
+      .wishlist-content h3 {
+        font-size: 1.2rem;
+      }
+
+      .price {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+
+
+
+<main>
+  <div class="wishlist-container">
+    <h2>My Wishlist (<%= wishlist.length %>)</h2>
+<div class="wishlist-grid">
+  <% if (wishlist.length === 0) { %>
+    <p>Your wishlist is empty.</p>
+  <% } else { %>
+    <% wishlist.forEach(product => { %>
+      <div class="wishlist-card">
+        <img src="<%= product.productImage[0] %>" alt="<%= product.productName %>" class="wishlist-image" />
+
+        <div class="wishlist-content">
+          <h3><%= product.productName %></h3>
+          <% if (product.category) { %>
+            <span class="assured-badge"><%= product.category.name %></span>
+          <% } %>
+          <p class="price">
+            ₹<%= product.salePrice || product.regularPrice %>
+            <% if(product.salePrice && product.salePrice < product.regularPrice){ %>
+              <del>₹<%= product.regularPrice %></del>
+              <span class="discount">
+                <%= Math.round(((product.regularPrice - product.salePrice) / product.regularPrice) * 100) %>% off
+              </span>
+            <% } %>
+          </p>
+          <% if(product.isBlocked){ %>
+            <p class="unavailable">Currently unavailable</p>
+          <% } %>
+        </div>
+
+        <div class="action-buttons">
+          <button class="add-to-cart" data-id="<%= product._id %>" <%= product.isBlocked ? 'disabled' : '' %>>
+            <i class="fas fa-cart-plus"></i> Add to Cart
+          </button>
+          <button class="delete-button" data-id="<%= product._id %>">
+            <i class="fas fa-trash"></i> Remove
+          </button>
+        </div>
+      </div>
+    <% }) %>
+  <% } %>
+</div>
+
+  </div>
+
+  <!-- Pagination -->
+  <% if (totalPages > 1) { %>
+    <div class="pagination">
+      <% for (let i = 1; i <= totalPages; i++) { %>
+        <a href="/wishlist?page=<%= i %>" class="<%= i === currentPage ? 'active' : '' %>"><%= i %></a>
+      <% } %>
+    </div>
+  <% } %>
+</main>
+
+<script>
+  document.querySelectorAll('.delete-button').forEach(button => {
+    button.addEventListener('click', () => {
+      button.classList.add('loading');
+      button.disabled = true;
+      setTimeout(() => {
+        button.classList.remove('loading');
+        button.disabled = false;
+      }, 1500);
+    });
+  });
+</script>
+<script>
+document.querySelectorAll('.delete-button').forEach(button => {
+  button.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const productId = button.dataset.id;
+
+    button.classList.add('loading');
+    button.disabled = true;
+
+    try {
+      const res = await fetch(`/wishlist/${productId}`, {
+        method: 'DELETE',
+        credentials: 'include' // to send cookies for JWT
+      });
+      const data = await res.json();
+      alert(data.message);
+
+      if (data.success) {
+        // Remove the card from DOM
+        button.closest('.wishlist-card').remove();
+      }
+    } catch(err) {
+      console.error(err);
+      button.classList.remove('loading');
+      button.disabled = false;
+    }
+  });
+});
+</script>
+<script>
+document.querySelectorAll('.add-to-cart').forEach(btn => {
+  btn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const productId = btn.dataset.id;
+
+    btn.disabled = true;
+    btn.classList.add('loading');
+
+    try {
+      const res = await fetch(`/cart/add/${productId}`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      const data = await res.json();
+      alert(data.message);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+  });
+});
+</script>
+
+  <%- include('../partials/footer') %>
