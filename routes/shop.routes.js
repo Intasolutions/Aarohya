@@ -67,5 +67,10 @@ router.post("/checkout/razorpay/verify", protect, checkoutController.verifyRazor
 router.get("/order/success", protect, checkoutController.orderSuccess);
 router.get("/order/failure", protect, checkoutController.orderFailure);
 
+
 router.get("/orders", protect, orderController.listOrders);
+router.get("/orders/:id", protect, orderController.getOrderDetails);
+router.get("/orders/:id/invoice", protect, orderController.getInvoice);
+
+
 module.exports = router;

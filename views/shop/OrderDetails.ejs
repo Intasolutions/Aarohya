@@ -1,347 +1,312 @@
-<%- include('../partials/header') %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Order Details</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="/public/img/core-img/favicon.ico" />
+  <link rel="stylesheet" href="/public/css/core-style.css" />
+  <link rel="stylesheet" href="/public/css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root{--ink:#212529;--muted:#868e96;--soft:#f1f3f5;--ring:#e9ecef;--brand:#b197fc;--ok:#2f9e44;--warn:#f08c00;--bad:#e03131;--ship:#4263eb}
+    .nv{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--soft)}
+    .nv-w{max-width:1150px;margin:0 auto;display:flex;align-items:center;gap:16px;padding:12px 16px}
+    .nv a{color:var(--ink);text-decoration:none}
+    .nv-logo{display:flex;align-items:center;gap:10px;font-weight:800}
+    .nv-logo img{height:30px}
+    .nv-grow{flex:1}
+    .nv-menu a{margin:0 8px;color:#495057}
+    .nv-cta a{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--ring);padding:8px 12px;border-radius:999px}
 
-<style>
-  :root {
-    --primary: #C5A880;
-    --secondary: #7B5E40;
-    --accent: #E0D4B7;
-    --light: #F8F5F0;
-    --dark: #2C1F1A;
-    --bg: #FFF9F3;
-    --shadow: rgba(197, 168, 128, 0.15);
-    --border: #e2d5c0;
-  }
+    .wrap{max-width:1150px;margin:22px auto;padding:0 16px}
+    .heading{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+    .badges{display:flex;gap:8px;flex-wrap:wrap}
+    .status{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:6px 10px;font-weight:700;border:1px solid transparent}
+    .st-pending{background:#fff8e1;border-color:#ffe8a1;color:#9c6f00}
+    .st-processing{background:#eef4ff;border-color:#dce4ff;color:#364fc7}
+    .st-shipped{background:#eef4ff;border-color:#dce4ff;color:#4263eb}
+    .st-delivered{background:#e9f9ef;border-color:#c7f2d6;color:#2f9e44}
+    .st-cancelled{background:#fff1f3;border-color:#ffd6de;color:#e03131}
+    .st-return{background:#fff4e6;border-color:#ffe8cc;color:#d9480f}
 
-  body {
-    background: var(--bg);
-    font-family: "Segoe UI", sans-serif;
-    color: var(--dark);
-    margin: 0;
-    padding: 0;
-  }
+    .grid{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-top:14px}
+    @media (max-width: 900px){.grid{grid-template-columns:1fr}}
+    .card{border:1px solid var(--soft);border-radius:14px;background:#fff;box-shadow:0 8px 26px rgba(0,0,0,.04)}
+    .card-hd{padding:12px 14px;border-bottom:1px solid var(--soft);display:flex;justify-content:space-between;align-items:center}
+    .card-bd{padding:12px 14px}
+    .muted{color:#868e96}
 
-  .ordersPage {
-    max-width: 1300px;
-    margin: 40px auto;
-    padding: 20px;
-    display: flex;
-    gap: 24px;
-  }
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid var(--ring);text-align:left;vertical-align:top}
+    th{font-weight:700;color:#495057;background:#fafbfc}
+    .irow{display:flex;gap:10px;align-items:center}
+    .irow img{width:54px;height:54px;border-radius:8px;object-fit:cover;border:1px solid var(--ring)}
+    .sum{display:flex;justify-content:space-between;padding:8px 0}
+    .sum b{font-size:16px}
+    .tot{border-top:1px dashed var(--ring);padding-top:8px;margin-top:8px}
 
-  /* Sidebar */
-  .ordersPage__sidebar {
-    width: 280px;
-    background: #fff;
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 6px 20px var(--shadow);
-  }
-
-  .ordersPage__user {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 24px;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 16px;
-  }
-
-  .ordersPage__user img {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    object-fit: cover;
-    background: var(--accent);
-  }
-
-  .ordersPage__links {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .ordersPage__links a {
-    text-decoration: none;
-    color: var(--dark);
-    padding: 10px 14px;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    font-size: 0.95rem;
-  }
-
-  .ordersPage__links a:hover,
-  .ordersPage__links a.active {
-    background: var(--primary);
-    color: #fff;
-  }
-
-  /* Main Content */
-  .ordersPage__content {
-    flex: 1;
-  }
-
-  .ordersPage__content h2 {
-    margin: 0 0 20px;
-    font-size: 1.5rem;
-    color: var(--secondary);
-  }
-
-  /* Filters */
-  .ordersPage__filters {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
-
-  .ordersPage__filters button {
-    border: 1px solid var(--border);
-    background: #fff;
-    padding: 8px 16px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-  }
-
-  .ordersPage__filters button span {
-    font-weight: bold;
-    margin-left: 4px;
-    color: var(--secondary);
-  }
-
-  .ordersPage__filters button.active,
-  .ordersPage__filters button:hover {
-    background: var(--primary);
-    color: #fff;
-    border-color: var(--primary);
-  }
-
-  .ordersPage__filters button.active span,
-  .ordersPage__filters button:hover span {
-    color: #fff;
-  }
-
-  /* Order Card */
-  .orderCard {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 6px 20px var(--shadow);
-    padding: 20px;
-    margin-bottom: 20px;
-  }
-
-  .orderCard__header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 16px;
-    font-size: 0.9rem;
-    align-items: center;
-  }
-
-  /* Status Badges */
-  .status-badge {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: #fff;
-  }
-
-  .status-badge.inprogress {
-    background: var(--primary);
-  }
-
-  .status-badge.delivered {
-    background: #4CAF50;
-  }
-
-  .status-badge.cancelled {
-    background: #E53935;
-  }
-
-  .orderCard__items {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-  }
-
-  .orderItem {
-    display: flex;
-    gap: 14px;
-    border-top: 1px solid var(--border);
-    padding-top: 14px;
-  }
-
-  .orderItem img {
-    width: 80px;
-    height: 80px;
-    border-radius: 8px;
-    object-fit: cover;
-    background: var(--accent);
-  }
-
-  .orderItem__details {
-    flex: 1;
-  }
-
-  .orderItem__details h4 {
-    margin: 0 0 6px;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--dark);
-  }
-
-  .orderItem__details p {
-    margin: 0;
-    font-size: 0.85rem;
-    color: var(--secondary);
-  }
-
-  .orderItem__price {
-    font-weight: bold;
-    color: var(--secondary);
-    font-size: 1rem;
-  }
-
-  .orderCard__footer {
-    margin-top: 16px;
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-  }
-
-  .orderCard__footer button {
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    font-size: 1rem;
-    color: var(--secondary);
-  }
-
-  .orderCard__footer button:hover {
-    color: var(--primary);
-  }
-
-  @media (max-width: 900px) {
-    .ordersPage {
-      flex-direction: column;
-    }
-    .ordersPage__sidebar {
-      width: 100%;
-    }
-  }
-</style>
-
-<main>
-  <div class="ordersPage">
-
-
-        <aside class="ordersPage__sidebar">
-        <div class="ordersPage__user">
-            <img src="public/images/profile/avatar.jpg" alt="User">
-            <div>
-            <h4>Akash A</h4>
-            <p style="font-size: 0.85rem; color: var(--secondary);">Premium Member</p>
-            </div>
-        </div>
-        <nav class="ordersPage__links">
-            <a href="#" class="active"><i class="fas fa-box"></i> Order History</a>
-            <a href="#"><i class="fas fa-heart"></i> Wishlist</a>
-            <a href="#"><i class="fas fa-user-cog"></i> Account Settings</a>
-        </nav>
-        </aside>
-
-    <!-- Main Content -->
-    <section class="ordersPage__content">
-      <h2>My Orders</h2>
-
-      <!-- Filters -->
-      <div class="ordersPage__filters">
-        <button class="active">All Orders <span>(18)</span></button>
-        <button>In Progress <span>(2)</span></button>
-        <button>Delivered <span>(15)</span></button>
-        <button>Cancelled <span>(1)</span></button>
+    .timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:14px}
+    .step{display:flex;flex-direction:column;gap:8px;align-items:center}
+    .dot{width:14px;height:14px;border-radius:50%;background:#ced4da}
+    .bar{height:4px;background:#ced4da;width:100%;border-radius:999px}
+    .on .dot,.on .bar{background:var(--brand)}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:8px 12px;border:1px solid var(--ring);text-decoration:none;color:#343a40;background:#fff}
+    .btn-primary{background:var(--brand);border-color:#var(--brand);color:#fff}
+    .kv{display:grid;grid-template-columns:130px 1fr;gap:6px 10px}
+    .kv .k{color:#868e96}
+    .pill{display:inline-block;border:1px solid var(--ring);padding:2px 8px;border-radius:999px;font-size:12px;color:#495057}
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <div class="nv">
+    <div class="nv-w">
+      <a class="nv-logo" href="/"><img src="/public/img/core-img/logo.png" alt="Logo"> Aarohya</a>
+      <div class="nv-grow"></div>
+      <div class="nv-menu">
+        <a href="/">Home</a>
+        <a href="/shop">Shop</a>
+        <a href="/cart">Cart</a>
+        <a href="/orders"><strong>Orders</strong></a>
       </div>
-
-      <!-- Order Card - In Progress -->
-      <div class="orderCard">
-        <div class="orderCard__header">
-          <span>Order #266215 • 15 Sep 2025</span>
-          <span><span class="status-badge inprogress">In Progress</span></span>
-        </div>
-
-        <div class="orderCard__items">
-          <div class="orderItem">
-            <img src="public/images/products/product1.jpg" alt="Product">
-            <div class="orderItem__details">
-              <h4>Oversize Denim Jacket</h4>
-              <p>Size: M • Color: Blue</p>
-            </div>
-            <div class="orderItem__price">₹3700</div>
-          </div>
-        </div>
-
-        <div class="orderCard__footer">
-          <button><i class="fas fa-info-circle"></i></button>
-          <button><i class="fas fa-trash"></i></button>
-        </div>
+      <div class="nv-cta">
+        <% if (user) { %>
+          <a href="/profile"><i class="fa-regular fa-user"></i> <%= user.name || user.email %></a>
+        <% } else { %>
+          <a href="/auth/login"><i class="fa-regular fa-circle-user"></i> Sign in</a>
+        <% } %>
       </div>
-
-      <!-- Order Card - Delivered -->
-      <div class="orderCard">
-        <div class="orderCard__header">
-          <span>Order #258841 • 12 Sep 2025</span>
-          <span><span class="status-badge delivered">Delivered</span></span>
-        </div>
-
-        <div class="orderCard__items">
-          <div class="orderItem">
-            <img src="public/images/products/product2.jpg" alt="Product">
-            <div class="orderItem__details">
-              <h4>Casual Sweater with Lace Inserts</h4>
-              <p>Size: S • Color: White</p>
-            </div>
-            <div class="orderItem__price">₹3000</div>
-          </div>
-        </div>
-
-        <div class="orderCard__footer">
-          <button><i class="fas fa-info-circle"></i></button>
-          <button><i class="fas fa-trash"></i></button>
-        </div>
-      </div>
-
-      <!-- Order Card - Cancelled -->
-      <div class="orderCard">
-        <div class="orderCard__header">
-          <span>Order #258700 • 10 Sep 2025</span>
-          <span><span class="status-badge cancelled">Cancelled</span></span>
-        </div>
-
-        <div class="orderCard__items">
-          <div class="orderItem">
-            <img src="public/images/products/product3.jpg" alt="Product">
-            <div class="orderItem__details">
-              <h4>Classic Cotton Shirt</h4>
-              <p>Size: L • Color: Grey</p>
-            </div>
-            <div class="orderItem__price">₹1500</div>
-          </div>
-        </div>
-
-        <div class="orderCard__footer">
-          <button><i class="fas fa-info-circle"></i></button>
-          <button><i class="fas fa-trash"></i></button>
-        </div>
-      </div>
-
-    </section>
-
+    </div>
   </div>
-</main>
 
-<%- include('../partials/footer') %>
+  <div class="wrap">
+    <% if (typeof notFound !== 'undefined' && notFound) { %>
+      <div class="card">
+        <div class="card-bd">
+          <p class="muted">We couldn’t find that order.</p>
+          <a class="btn btn-primary" href="/orders"><i class="fa fa-arrow-left"></i> Back to Orders</a>
+        </div>
+      </div>
+    <% } else { %>
+      <%
+        const S = (norm.meta.status || '').toLowerCase();
+        const stClass =
+          S.includes('cancel') ? 'st-cancelled' :
+          S.includes('deliver') ? 'st-delivered' :
+          S.includes('ship') ? 'st-shipped' :
+          S.includes('process') ? 'st-processing' :
+          S.includes('return') ? 'st-return' : 'st-pending';
+        const placed = norm.meta.placedAt || norm.meta.createdAt;
+        const raw = norm.raw || {};
+      %>
+
+      <div class="heading">
+        <div>
+          <h2>Order #<%= norm.meta.orderId %></h2>
+          <div class="muted"><i class="fa-regular fa-clock"></i>
+            Placed on <%= placed ? new Date(placed).toLocaleString() : '-' %>
+          </div>
+        </div>
+        <div class="badges">
+          <span class="status <%= stClass %>"><i class="fa fa-circle-dot"></i> <%= norm.meta.status %></span>
+          <span class="status"><i class="fa fa-wallet"></i> <%= norm.meta.paymentMethod %> • <%= norm.meta.paymentStatus %></span>
+          <% if (raw.couponApplied && raw.couponCode) { %>
+            <span class="status"><i class="fa fa-ticket"></i> Coupon: <%= raw.couponCode %></span>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="card" style="margin-top:12px">
+        <div class="card-hd"><strong>Tracking</strong></div>
+        <div class="timeline">
+          <% const steps = ["pending","processing","shipped","delivered"]; %>
+          <% const idx = Math.max(0, steps.findIndex(s => s === S) + 1); %>
+          <% steps.forEach((label, i) => { %>
+            <div class="step <%= (i < idx) ? 'on' : '' %>">
+              <div class="dot"></div>
+              <div class="bar"></div>
+              <small style="text-transform:capitalize"><%= label %></small>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+
+      <div class="grid">
+        <!-- Left: Items -->
+        <div class="card">
+          <div class="card-hd"><strong>Items</strong></div>
+          <div class="card-bd">
+            <table>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Unit</th>
+                  <th>Qty</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% norm.items.forEach((it, idx) => {
+                     const line = (raw.orderedItems && raw.orderedItems[idx]) || {};
+                     const pstatus = (line.productStatus || 'active').toLowerCase();
+                     const reason = line.cancelReason || line.returnReason || '';
+                %>
+                  <tr>
+                    <td>
+                      <div class="irow">
+                        <img src="/public/<%= it.img %>" alt="">
+                        <div>
+                          <div style="font-weight:600"><%= it.name %></div>
+                          <small class="muted">
+                            <%= it.color ? ('Color: ' + it.color) : '' %>
+                          </small>
+                        </div>
+                      </div>
+                    </td>
+                    <td>₹<%= it.unit %></td>
+                    <td><%= it.qty %></td>
+                    <td>₹<%= it.total %></td>
+                    <td>
+                      <% if (pstatus !== 'active') { %>
+                        <span class="pill"><%= pstatus %></span>
+                        <% if (reason) { %><div class="muted" style="max-width:260px"><small><%= reason %></small></div><% } %>
+                      <% } else { %>
+                        <span class="pill">active</span>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Right: Summary & address -->
+        <div class="card">
+          <div class="card-hd"><strong>Order Summary</strong></div>
+          <div class="card-bd">
+            <div class="sum"><span>Subtotal</span><span>₹<%= norm.totals.subtotal %></span></div>
+            <div class="sum"><span>Discount</span><span>- ₹<%= norm.totals.discount %></span></div>
+            <div class="sum"><span>Shipping</span><span><%= norm.totals.shipping ? '₹'+norm.totals.shipping : 'Free' %></span></div>
+            <div class="sum"><span>Tax</span><span>₹<%= norm.totals.tax %></span></div>
+            <div class="sum tot"><b>Total</b><b>₹<%= norm.totals.grand %></b></div>
+
+            <hr style="border:none;border-top:1px dashed var(--ring);margin:12px 0">
+
+            <!-- Payment meta -->
+            <div class="kv" style="margin-bottom:10px">
+              <div class="k">Payment</div>
+              <div><%= norm.meta.paymentMethod %> • <%= norm.meta.paymentStatus %></div>
+
+              <% if (raw.payment && raw.payment.transactionId) { %>
+                <div class="k">Transaction ID</div>
+                <div><code><%= raw.payment.transactionId %></code></div>
+              <% } %>
+
+              <% if (raw.payment && raw.payment.razorpayOrderId) { %>
+                <div class="k">Razorpay Order</div>
+                <div><code><%= raw.payment.razorpayOrderId %></code></div>
+              <% } %>
+
+              <% if (raw.payment && raw.payment.razorpayPaymentId) { %>
+                <div class="k">Razorpay Payment</div>
+                <div><code><%= raw.payment.razorpayPaymentId %></code></div>
+              <% } %>
+
+              <% if (raw.paidAt) { %>
+                <div class="k">Paid At</div>
+                <div><%= new Date(raw.paidAt).toLocaleString() %></div>
+              <% } %>
+            </div>
+
+            <hr style="border:none;border-top:1px dashed var(--ring);margin:12px 0">
+
+            <!-- Shipping meta -->
+            <div class="kv" style="margin-bottom:10px">
+              <div class="k">Shipping</div>
+              <div>
+                <% if (raw.shippingProvider) { %>
+                  <%= raw.shippingProvider %>
+                <% } else { %>
+                  <span class="muted">—</span>
+                <% } %>
+              </div>
+
+              <div class="k">Tracking #</div>
+              <div>
+                <% if (raw.trackingNumber) { %>
+                  <code><%= raw.trackingNumber %></code>
+                  <% if (raw.trackingUrl) { %>
+                    &nbsp; • <a href="<%= raw.trackingUrl %>" target="_blank" rel="noopener">Track package <i class="fa fa-arrow-up-right-from-square"></i></a>
+                  <% } %>
+                <% } else { %>
+                  <span class="muted">—</span>
+                <% } %>
+              </div>
+
+              <% if (norm.meta.shippedAt) { %>
+                <div class="k">Shipped</div>
+                <div><%= new Date(norm.meta.shippedAt).toLocaleString() %></div>
+              <% } %>
+              <% if (norm.meta.deliveredAt) { %>
+                <div class="k">Delivered</div>
+                <div><%= new Date(norm.meta.deliveredAt).toLocaleString() %></div>
+              <% } %>
+            </div>
+
+            <hr style="border:none;border-top:1px dashed var(--ring);margin:12px 0">
+
+            <!-- Address -->
+            <div>
+              <div class="muted" style="margin-bottom:6px">Deliver to</div>
+              <% const A = norm.address || {}; %>
+              <div><strong><%= A.name || '-' %></strong></div>
+              <div class="muted">
+                <%= [A.apartment, A.building, A.street].filter(Boolean).join(', ') %><br>
+                <%= [A.city, A.state, A.zip].filter(Boolean).join(', ') %><br>
+                <%= A.country || '' %>
+              </div>
+              <div class="muted" style="margin-top:6px">
+                <i class="fa fa-phone"></i>
+                <%= [A.phone, A.altPhone].filter(Boolean).join(' / ') %>
+              </div>
+            </div>
+
+            <!-- Return request (if any) -->
+            <% if (raw.returnRequest && raw.returnRequest.status && raw.returnRequest.status !== 'none') { %>
+              <hr style="border:none;border-top:1px dashed var(--ring);margin:12px 0">
+              <div>
+                <div class="muted" style="margin-bottom:6px">Return Request</div>
+                <div class="kv">
+                  <div class="k">Status</div><div><span class="pill"><%= raw.returnRequest.status %></span></div>
+                  <% if (raw.returnRequest.reason) { %><div class="k">Reason</div><div><%= raw.returnRequest.reason %></div><% } %>
+                  <% if (raw.returnRequest.description) { %><div class="k">Details</div><div><%= raw.returnRequest.description %></div><% } %>
+                  <% if (raw.returnRequest.requestedAt) { %><div class="k">Requested</div><div><%= new Date(raw.returnRequest.requestedAt).toLocaleString() %></div><% } %>
+                  <% if (raw.returnRequest.reviewedAt) { %><div class="k">Reviewed</div><div><%= new Date(raw.returnRequest.reviewedAt).toLocaleString() %></div><% } %>
+                  <% if (raw.returnRequest.rejectionReason) { %><div class="k">Rejection</div><div><%= raw.returnRequest.rejectionReason %></div><% } %>
+                </div>
+              </div>
+            <% } %>
+
+            <div class="actions" style="margin-top:12px">
+              <a class="btn btn-primary" href="/orders/<%= order._id %>/invoice"><i class="fa fa-file-invoice"></i> Invoice</a>
+              <a class="btn" href="/orders"><i class="fa fa-arrow-left"></i> Back to Orders</a>
+              <% if (S === 'pending' || S === 'processing') { %>
+                <a class="btn" href="/orders/<%= order._id %>/cancel"><i class="fa fa-ban"></i> Cancel</a>
+              <% } %>
+              <% if (S === 'delivered') { %>
+                <a class="btn" href="/orders/<%= order._id %>/return"><i class="fa fa-undo"></i> Return</a>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% } %>
+  </div>
+</body>
+</html>

@@ -1,46 +1,293 @@
-<%- include('../partials/header') %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title><%= (typeof pageTitle!=='undefined' ? pageTitle : 'Create Account | Luxe Jewellery') %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --ivory:#fcf8f2;       /* page background */
+      --panel:#ffffff;       /* card */
+      --ink:#1f232b;         /* text */
+      --muted:#6d717c;       /* sub text */
+      --line:#ebe6de;        /* divider */
+      --input:#eaf2ff;       /* light blue input bg */
+      --input-bd:#cfe0ff;    /* input border */
+      --gold:#d4af37;        /* button gradient */
+      --gold-2:#c5a880;      /* button gradient end */
+      --danger:#a21d1d;
+      --success:#1b7a3a;
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{ margin:0; background:var(--ivory);
+      font-family:'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color:var(--ink); }
 
-<div class="container mt-5">
-  <h2 class="text-center">Create Account</h2>
-  <form action="/auth/signup" method="POST" class="mt-4" style="max-width:500px;margin:auto;">
-    
-    <!-- Name -->
-    <div class="form-group mb-3">
-      <label for="name">Full Name</label>
-      <input type="text" class="form-control" id="name" name="name" required>
-    </div>
+    .wrap{min-height:100dvh; display:grid; grid-template-columns:1fr 1fr;}
 
-    <!-- Email -->
-    <div class="form-group mb-3">
-      <label for="email">Email address</label>
-      <input type="email" class="form-control" id="email" name="email" required>
-    </div>
+    /* LEFT HERO */
+    .left{ position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden; perspective: 1000px; }
+    .left::before{ content:""; position:absolute; inset:-20%;
+      background:radial-gradient(800px 600px at 25% 50%, rgba(255,255,255,.85), rgba(0,0,0,0) 60%); pointer-events:none; }
+    .left-img{ width:min(620px, 95%); height:300px; display:block; object-fit:contain; filter:drop-shadow(0 10px 24px rgba(0,0,0,.06));
+      will-change: transform, opacity, filter; transform-origin: 50% 60%; }
 
-    <!-- Mobile -->
-    <div class="form-group mb-3">
-      <label for="phone">Mobile Number</label>
-      <input type="text" class="form-control" id="phone" name="phone" required pattern="[0-9]{10}" placeholder="10-digit number">
-    </div>
+    /* CENTER DIVIDER (animated shimmer) */
+    .wrap::after{ content:""; position:fixed; top:0; bottom:0; left:50%; width:2px;
+      background:linear-gradient(to bottom, transparent, var(--gold), transparent);
+      background-size:100% 200%; animation: shimmer 3s linear infinite; transform:translateX(-1px); }
+    @keyframes shimmer{ 0%{background-position:0% -100%} 100%{background-position:0% 200%} }
 
-    <!-- Password -->
-    <div class="form-group mb-3">
-      <label for="password">Password</label>
-      <input type="password" class="form-control" id="password" name="password" required>
-    </div>
+    /* RIGHT FORM */
+    .right{ display:flex; align-items:center; justify-content:center; padding:64px 48px; background:#fff9f0a6; }
+    .card{ width:min(560px, 92vw); background:transparent; text-align:left; will-change: transform, opacity; }
+    .title{ font-family:'Playfair Display', serif; font-size:46px; line-height:1.05; margin:0 0 8px; font-weight:700; overflow:hidden; }
+    .title .reveal-line{ display:block; transform:translateY(100%); }
+    .sub{ color:var(--muted); margin:0 0 28px; font-size:16px; opacity:0; transform:translateY(12px); }
 
-    <!-- Confirm Password -->
-    <div class="form-group mb-3">
-      <label for="confirmPassword">Confirm Password</label>
-      <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
-    </div>
+    .grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .field{ margin:14px 0; opacity:0; transform:translateY(16px); }
+    .label{ display:block; font-size:14px; margin-bottom:8px; color:#3b3f46; }
+    .input{ width:100%; padding:14px 16px; border-radius:12px; border:1px solid var(--input-bd); background:var(--input);
+      font-size:16px; outline:0; transition:box-shadow .2s, border-color .2s, transform .18s ease; }
+    .input::placeholder{ color:#7f8aa5; }
+    .input:focus{ border-color:#9cc0ff; box-shadow:0 0 0 6px rgba(156,192,255,.28); background:#fff; transform:translateY(-1px); }
 
-    <!-- Submit -->
-    <button type="submit" class="btn btn-primary w-100">Sign Up</button>
-  </form>
+    .pw-wrap{ position:relative; }
+    .toggle{ position:absolute; right:10px; top:50%; transform:translateY(-50%); border:0; background:transparent; cursor:pointer; font-size:13px; color:#546075; }
 
-  <p class="text-center mt-3">
-    Already have an account? <a href="/auth/login">Login</a>
-  </p>
-</div>
+    .hint{ font-size:12px; color:#6f7785; margin-top:6px; }
+    .error-text{ color:var(--danger); font-size:12px; margin-top:6px; }
 
-<%- include('../partials/footer') %>
+    .strength{ height:8px; border-radius:999px; background:#e9edf7; margin-top:10px; overflow:hidden; opacity:0; transform:translateY(8px); }
+    .bar{ height:100%; width:0%; background:linear-gradient(90deg, #ff7575, #ffd36e, #75d97a); transition:width .25s ease; }
+
+    .btn{ width:100%; padding:16px 18px; border:0; border-radius:14px; cursor:pointer; font-weight:800; font-size:18px; color:#fff;
+      background:linear-gradient(90deg, var(--gold), var(--gold-2)); box-shadow:0 12px 22px rgba(212,175,55,.28);
+      transition:transform .18s ease, box-shadow .18s ease; margin-top:6px; opacity:0; transform:translateY(20px) scale(.98); }
+    .btn:hover{ transform:translateY(-1px) scale(1.01); box-shadow:0 16px 28px rgba(212,175,55,.36); }
+
+    .agree{ display:flex; gap:10px; align-items:center; font-size:14px; color:#444b55; margin:10px 0 0; opacity:0; transform:translateY(16px); }
+    .link{ color:#2f343c; text-underline-offset:3px; border-bottom:1px solid var(--gold); text-decoration:none; }
+    .meta{ font-size:15px; color:var(--muted); margin-top:16px; text-align:center; opacity:0; transform:translateY(12px); }
+
+    .alert{ border-radius:12px; padding:10px 12px; margin:12px 0; font-size:14px; }
+    .alert-error{ color:#8a1f1f;background:#ffe8e8;border:1px solid #ffb8b8; }
+    .alert-success{ color:#1f6a3b;background:#e8ffef;border:1px solid #a7f0c1; }
+
+    /* Subtle golden sweep on load */
+    .gold-sweep { position: fixed; pointer-events: none; inset: 0; background: linear-gradient(120deg, transparent 0%, rgba(212,175,55,0.08) 25%, transparent 60%);
+      mix-blend-mode: soft-light; opacity:0; }
+
+    @media (max-width: 980px){
+      .wrap{ grid-template-columns: 1fr; }
+      .wrap::after{ display:none; }
+      .left{ height: 38vh; }
+      .right{ padding: 32px 22px; }
+      .grid{ grid-template-columns:1fr; }
+      .title{ font-size:38px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <aside class="left" aria-hidden="true">
+      <img class="left-img" src="<%= (typeof heroImageUrl!=='undefined' ? heroImageUrl : '/public/images/logo2.png') %>" alt="Jewellery" />
+    </aside>
+
+    <main class="right">
+      <section class="card" role="form" aria-labelledby="signup-title">
+        <h1 id="signup-title" class="title"><span class="reveal-line">Create Account</span></h1>
+        <p class="sub">Join Luxe Jewellery to save your favourites and track orders.</p>
+
+        <% if (typeof success!=='undefined' && success) { %>
+          <div class="alert alert-success"><%= success %></div>
+        <% } %>
+        <% if (typeof error!=='undefined' && error) { %>
+          <div class="alert alert-error"><%= error %></div>
+        <% } %>
+        <% if (typeof messages!=='undefined' && Array.isArray(messages) && messages.length) { %>
+          <% messages.forEach(function(m){ %>
+            <div class="alert <%= m.type === 'success' ? 'alert-success' : 'alert-error' %>"><%= m.text %></div>
+          <% }) %>
+        <% } %>
+
+        <form action="<%= (typeof action!=='undefined' ? action : '/auth/signup') %>" method="POST" novalidate>
+          <% if (typeof csrfToken!=='undefined' && csrfToken) { %>
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <% } %>
+
+          <div class="field">
+            <label class="label" for="name">Full Name</label>
+            <input class="input" id="name" name="name" type="text" required placeholder="Jane Doe" value="">
+          </div>
+
+          <div class="grid">
+            <div class="field">
+              <label class="label" for="email">Email</label>
+              <input class="input" id="email" name="email" type="email" inputmode="email" autocomplete="email" required placeholder="you@example.com" value="">
+            </div>
+            <div class="field">
+              <label class="label" for="phone">Mobile Number</label>
+              <input class="input" id="phone" name="phone" type="tel" pattern="[0-9]{10}" required placeholder="10-digit number" value="">
+              <p class="hint">We’ll send order updates via SMS.</p>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="field pw-wrap">
+              <label class="label" for="password">Password</label>
+              <input class="input" id="password" name="password" type="password" autocomplete="new-password" required placeholder="••••••••">
+              <button class="toggle" type="button" data-target="password">Show</button>
+              <div class="strength" aria-hidden="true"><div class="bar" id="pwBar"></div></div>
+              <p class="hint">Use 8+ characters with letters & numbers.</p>
+            </div>
+            <div class="field pw-wrap">
+              <label class="label" for="confirmPassword">Confirm Password</label>
+              <input class="input" id="confirmPassword" name="confirmPassword" type="password" required placeholder="••••••••">
+              <button class="toggle" type="button" data-target="confirmPassword">Show</button>
+              <div id="matchMsg" class="hint"></div>
+            </div>
+          </div>
+
+          <label class="agree">
+            <input type="checkbox" name="agree" required>
+            I agree to the <a class="link" href="/terms" target="_blank">Terms</a> and <a class="link" href="/privacy" target="_blank">Privacy Policy</a>.
+          </label>
+
+          <button class="btn" type="submit">Sign Up</button>
+          <p class="meta">Already have an account? <a class="link" href="<%= (typeof loginUrl!=='undefined' ? loginUrl : '/auth/login') %>">Login</a></p>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <!-- Subtle cinematic gold sweep overlay -->
+  <div class="gold-sweep" aria-hidden="true"></div>
+
+  <!-- GSAP (GreenSock) -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+
+  <script>
+    // Respect reduced motion
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!prefersReduced && window.gsap) {
+      gsap.registerPlugin(ScrollTrigger);
+
+      // master timeline
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+      // Initial states handled in CSS for smoother FOUC avoidance
+
+      // 1) Hero image parallax-in
+      tl.fromTo('.left-img',
+        { y: 30, scale: 1.12, opacity: 0, filter: 'blur(6px)' },
+        { y: 0, scale: 1, opacity: 1, filter: 'blur(0px)', duration: 1.2 }
+      );
+
+      // 2) Title line reveal (mask slide)
+      tl.to('.title .reveal-line', { y: '0%', duration: 0.9 }, '-=0.6');
+
+      // 3) Sub copy
+      tl.to('.sub', { opacity: 1, y: 0, duration: 0.6 }, '-=0.4');
+
+      // 4) Fields stagger
+      tl.to(gsap.utils.toArray('.field'), { opacity: 1, y: 0, duration: 0.5, stagger: 0.06 }, '-=0.2');
+
+      // 5) Strength bar container + agree
+      tl.to('.strength', { opacity: 1, y: 0, duration: 0.4 }, '-=0.36');
+      tl.to('.agree', { opacity: 1, y: 0, duration: 0.4 }, '-=0.32');
+
+      // 6) Button pop + meta
+      tl.to('.btn', { opacity: 1, y: 0, scale: 1, duration: 0.5 }, '-=0.2')
+        .to('.btn', { y: 0, duration: 0.3 });
+      tl.to('.meta', { opacity: 1, y: 0, duration: 0.5 }, '-=0.3');
+
+      // 7) Cinematic golden sweep overlay
+      gsap.fromTo('.gold-sweep', { opacity: 0 }, { opacity: 1, duration: 0.6, ease: 'power2.out' });
+      gsap.to('.gold-sweep', { xPercent: 20, duration: 1.6, ease: 'power1.out', onComplete(){
+        gsap.to('.gold-sweep', { opacity: 0, duration: 0.8, ease: 'power1.out' });
+      }});
+
+      // Parallax tilt effect on the hero image (subtle)
+      const hero = document.querySelector('.left');
+      const img = document.querySelector('.left-img');
+      if (hero && img) {
+        const qx = gsap.quickTo(img, 'rotationY', { duration: 0.5, ease: 'power2.out' });
+        const qy = gsap.quickTo(img, 'rotationX', { duration: 0.5, ease: 'power2.out' });
+        const qz = gsap.quickTo(img, 'y', { duration: 0.5, ease: 'power2.out' });
+        hero.addEventListener('pointermove', (e) => {
+          const r = hero.getBoundingClientRect();
+          const cx = (e.clientX - r.left) / r.width - 0.5; // -0.5..0.5
+          const cy = (e.clientY - r.top) / r.height - 0.5;
+          qx(cx * 8); // rotateY
+          qy(-cy * 8); // rotateX
+          qz(cy * 6);  // parallax Y
+        });
+        hero.addEventListener('pointerleave', () => {
+          qx(0); qy(0); qz(0);
+        });
+      }
+
+      // Scroll-based gentle entrance on small screens (card)
+      ScrollTrigger.matchMedia({
+        '(max-width: 980px)': function(){
+          gsap.from('.card', { y: 24, opacity: 0, duration: 0.8, ease: 'power2.out',
+            scrollTrigger: { trigger: '.card', start: 'top 80%' }
+          });
+        }
+      });
+    }
+  </script>
+
+  <script>
+    // --- Existing functionality (kept) ---
+    // Password show/hide
+    document.querySelectorAll('.toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-target');
+        const input = document.getElementById(id);
+        if (!input) return;
+        const isPwd = input.type === 'password';
+        input.type = isPwd ? 'text' : 'password';
+        btn.textContent = isPwd ? 'Hide' : 'Show';
+      });
+    });
+
+    // Strength indicator (very lightweight)
+    const pw = document.getElementById('password');
+    const bar = document.getElementById('pwBar');
+    const matchMsg = document.getElementById('matchMsg');
+    const confirm = document.getElementById('confirmPassword');
+
+    function scorePassword(v){
+      let s = 0; if (!v) return 0;
+      if (v.length >= 8) s += 30;
+      if (/[A-Z]/.test(v)) s += 20;
+      if (/[0-9]/.test(v)) s += 20;
+      if (/[^A-Za-z0-9]/.test(v)) s += 20;
+      if (v.length >= 12) s += 10;
+      return Math.min(s, 100);
+    }
+
+    pw && pw.addEventListener('input', () => {
+      const pct = scorePassword(pw.value);
+      bar.style.width = pct + '%';
+    });
+
+    function checkMatch(){
+      if (!pw || !confirm) return;
+      if (!confirm.value) { matchMsg.textContent = ''; return; }
+      const ok = pw.value === confirm.value;
+      matchMsg.textContent = ok ? 'Passwords match' : 'Passwords do not match';
+      matchMsg.style.color = ok ? '#1b7a3a' : '#a21d1d';
+    }
+    confirm && confirm.addEventListener('input', checkMatch);
+    pw && pw.addEventListener('input', checkMatch);
+  </script>
+</body>
+</html>

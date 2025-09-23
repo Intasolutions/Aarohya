@@ -77,4 +77,3 @@ document.addEventListener('click', (e)=>{
     moveToCart(id, card);
   }
 });
-

@@ -4,6 +4,7 @@ const categoryController = require("../controllers/admin/categoryController");
 const subCategoryController = require("../controllers/admin/subCategoryController");
 const customerController = require("../controllers/admin/customerController");
 const adminController = require("../controllers/admin/adminAuthController");
+const orderController = require("../controllers/admin/orderController")
 
 const upload = require("../middleware/upload");
 
@@ -47,5 +48,18 @@ router.post("/subcategories/delete/:id", subCategoryController.deleteSubCategory
 router.get("/customers", customerController.getCustomers);
 router.post("/customers/toggle/:id", customerController.toggleBlock);
 router.post("/customers/delete/:id", customerController.deleteCustomer);
+
+
+
+// ================= ORDERS (NEW) =================
+router.get("/orders", orderController.listOrders);
+router.get("/orders/:id", orderController.getOrderDetails);
+router.post("/orders/:id/status", orderController.updateOrderStatus);
+router.post("/orders/:id/tracking", orderController.updateTracking);
+router.post("/orders/:id/cancel", orderController.cancelOrder);
+router.post("/orders/:id/items/:itemId/cancel", orderController.cancelItem);
+router.post("/orders/:id/return/approve", orderController.approveReturn);
+router.post("/orders/:id/return/reject", orderController.rejectReturn);
+router.post("/orders/:id/refund", orderController.refund);
 
 module.exports = router;

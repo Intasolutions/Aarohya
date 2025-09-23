@@ -108,8 +108,8 @@
       <input type="text" name="q" placeholder="Search orders, product names, ID…" value="<%= (filters && filters.q) || '' %>" />
       <select name="status">
         <option value="">All Status</option>
-        <% const ST = ["Pending","Processing","Shipped","Delivered","Cancelled","Return Requested","Returning","Returned"]; %>
-        <% ST.forEach(s => { 
+        <% const ST = ["pending","processing","shipped","delivered","cancelled","return_requested","returning","returned"]; %>
+        <% ST.forEach(s => {
              const cur = (filters && filters.status) ? String(filters.status).toLowerCase() : "";
              const val = s.toLowerCase();
         %>
@@ -132,13 +132,9 @@
       </div>
     <% } else { %>
       <div class="grid">
-        <% orders.forEach(function(order){ 
-             const items = order.items || order.orderedItems || [];
-             const subTotal = (order.totals && order.totals.subtotal) ?? order.totalPrice ?? 0;
-             const grand = (order.totals && order.totals.grandTotal) ?? order.finalAmount ?? order.amount ?? subTotal;
-             const disc  = (order.totals && order.totals.discountAmount) ?? order.discount ?? 0;
-             const ship  = (order.totals && order.totals.shippingFee) ?? order.shippingFee ?? 0;
-             const status = String(order.status || '').toLowerCase();
+        <% orders.forEach(function(ord){
+             // ord is normalized: { meta, items, totals, address, raw }
+             const status = String(ord.meta.status || '').toLowerCase();
              const statusClass =
                 status.includes('cancel') ? 'st-cancelled' :
                 status.includes('deliver') ? 'st-delivered' :
@@ -151,59 +147,69 @@
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
               <span class="status <%= statusClass %>">
                 <i class="fa fa-circle-dot"></i>
-                <%= order.status || 'Pending' %>
+                <%= ord.meta.status %>
               </span>
-              <small style="color:var(--muted)">Order #<%= order.orderId || order._id %></small>
+              <small style="color:var(--muted)">Order #<%= ord.meta.orderId %></small>
             </div>
-            <small style="color:var(--muted)"><i class="fa-regular fa-clock"></i> <%= new Date(order.createdAt).toLocaleString() %></small>
+            <small style="color:var(--muted)"><i class="fa-regular fa-clock"></i> <%= new Date(ord.meta.createdAt).toLocaleString() %></small>
           </div>
 
           <div class="card-bd">
             <div class="items" title="Items in this order">
-              <% items.forEach(function(it){ 
-                   const name = it.productName || (it.product && it.product.productName) || 'Product';
-                   const img  = it.image || it.productImage || (it.product && it.product.productImage && it.product.productImage[0]) || 'img/bg-img/cart1.jpg';
-                   const qty  = it.quantity || 1;
-                   const clr  = it.color || (it.product && it.product.color) || '';
-              %>
+              <% ord.items.forEach(function(it){ %>
                 <div class="chip">
-                  <img src="/public/<%= img %>" alt="">
+                  <img src="/public/<%= it.img %>" alt="">
                   <div style="min-width:120px">
-                    <div style="font-weight:600;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= name %></div>
-                    <small class="text-muted">Qty: <%= qty %> <% if (clr) { %> • <%= clr %><% } %></small>
+                    <div style="font-weight:600;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= it.name %></div>
+                    <small class="text-muted">Qty: <%= it.qty %> <% if (it.color) { %> • <%= it.color %><% } %></small>
                   </div>
                 </div>
               <% }) %>
             </div>
 
             <div class="meta">
-              <span><i class="fa fa-receipt"></i> Subtotal: ₹<%= subTotal %></span>
-              <span><i class="fa fa-percent"></i> Discount: ₹<%= disc %></span>
-              <span><i class="fa fa-truck"></i> Shipping: <%= ship ? ('₹' + ship) : 'Free' %></span>
+              <span title="Payment Method"><i class="fa fa-credit-card"></i> <%= ord.meta.paymentMethod %></span>
+              <span title="Payment Status"><i class="fa fa-badge-check"></i> <%= ord.meta.paymentStatus %></span>
+              <% if (ord.meta.razorpayOrderId) { %>
+                <span title="Razorpay Order ID"><i class="fa fa-hashtag"></i> <%= ord.meta.razorpayOrderId %></span>
+              <% } %>
+              <% if (ord.meta.deliveredAt) { %>
+                <span title="Delivered At"><i class="fa fa-box"></i> Delivered: <%= new Date(ord.meta.deliveredAt).toLocaleDateString() %></span>
+              <% } %>
+            </div>
+
+            <div class="meta">
+              <span><i class="fa fa-receipt"></i> Subtotal: ₹<%= ord.totals.subtotal %></span>
+              <span><i class="fa fa-percent"></i> Discount: ₹<%= ord.totals.discount %></span>
+              <span><i class="fa fa-truck"></i> Shipping: <%= ord.totals.shipping ? ('₹' + ord.totals.shipping) : 'Free' %></span>
+              <% if (ord.totals.tax) { %><span><i class="fa fa-indian-rupee-sign"></i> Tax: ₹<%= ord.totals.tax %></span><% } %>
             </div>
 
             <div class="sum">
               <div>
                 <small class="text-muted">Deliver to</small><br/>
-                <% const A = order.address || {}; %>
+                <% const A = ord.address || {}; %>
                 <div style="max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-                  <%= [A.name, [A.apartment, A.building, A.street].filter(Boolean).join(' '), [A.city, A.state].filter(Boolean).join(', ')].filter(Boolean).join(' · ') %>
+                  <%= [A.name, [A.apartment, A.building, A.street].filter(Boolean).join(' '), [A.city, A.state].filter(Boolean).join(', '), A.zip].filter(Boolean).join(' · ') %>
+                </div>
+                <div style="color:var(--muted);font-size:12px">
+                  <%= [A.phone, A.altPhone].filter(Boolean).join(' / ') %>
                 </div>
               </div>
               <div>
                 <small class="text-muted">Total</small><br/>
-                <b>₹<%= grand %></b>
+                <b>₹<%= ord.totals.grand %></b>
               </div>
             </div>
 
             <div class="actions">
-              <a class="btn btn-primary" href="/orders/<%= order._id %>"><i class="fa fa-eye"></i> View Details</a>
+              <a class="btn btn-primary" href="/orders/<%= ord.raw._id %>"><i class="fa fa-eye"></i> View Details</a>
               <% if (status === 'pending' || status === 'processing') { %>
-                <a class="btn btn-ghost" href="/orders/<%= order._id %>/cancel"><i class="fa fa-ban"></i> Cancel</a>
+                <a class="btn btn-ghost" href="/orders/<%= ord.raw._id %>/cancel"><i class="fa fa-ban"></i> Cancel</a>
               <% } %>
-              <a class="btn btn-ghost" href="/orders/<%= order._id %>/invoice"><i class="fa fa-file-invoice"></i> Invoice</a>
+              <a class="btn btn-ghost" href="/orders/<%= ord.raw._id %>/invoice"><i class="fa fa-file-invoice"></i> Invoice</a>
               <% if (status === 'delivered') { %>
-                <a class="btn btn-ghost" href="/orders/<%= order._id %>/return"><i class="fa fa-undo"></i> Return</a>
+                <a class="btn btn-ghost" href="/orders/<%= ord.raw._id %>/return"><i class="fa fa-undo"></i> Return</a>
               <% } %>
             </div>
           </div>
@@ -213,7 +219,7 @@
 
       <!-- Pagination -->
       <div class="pagi">
-        <% 
+        <%
           function qs(p){
             const u = new URLSearchParams();
             if (filters && filters.q) u.set('q', filters.q);

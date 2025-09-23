@@ -1,107 +1,297 @@
-:root{
-  --wl-bg: #0f1115;
-  --wl-card: rgba(255,255,255,0.06);
-  --wl-card-hover: rgba(255,255,255,0.1);
-  --wl-stroke: rgba(255,255,255,0.08);
-  --wl-accent: #f5b041; /* warm gold accent */
-  --wl-muted: #9aa0a6;
+  /* ===== Light Wishlist — aligned with Checkout theme ===== */
+  :root{
+    --wl-bg: #f7f8fb;                 /* page background */
+    --wl-card: #ffffff;               /* card bg */
+    --wl-card-hover: #ffffff;         /* hover base (we lift with shadow) */
+    --wl-stroke: rgba(17,24,39,.12);  /* borders/dividers */
+    --wl-accent: #fbb710;             /* brand yellow */
+    --wl-muted: #6b7280;              /* secondary text */
+    --wl-ink: #111827;                /* primary text */
+    --wl-shadow: 0 10px 24px rgba(17,24,39,.08);
+    --wl-shadow-hover: 0 16px 36px rgba(17,24,39,.12);
+  }
+
+  html, body { background: var(--wl-bg); color: var(--wl-ink); }
+
+  /* Wrap */
+  .wl-wrap{ max-width: 1200px; margin: 40px auto 80px; padding: 0 20px; }
+
+  /* Hero */
+  .wl-hero{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom: 24px; }
+  .wl-title{
+    font-size: clamp(24px, 2.4vw, 36px); color: var(--wl-ink); font-weight:700; letter-spacing:.3px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .wl-sub{ color: var(--wl-muted); margin-top:4px; font-size:14px; }
+  .wl-ctas{ display:flex; gap:10px; flex-wrap: wrap; }
+
+  /* Buttons */
+  .wl-btn{
+    border:1px solid var(--wl-stroke); background:#fff; color:var(--wl-ink); padding:10px 14px;
+    border-radius:999px; font-size:14px; cursor:pointer;  display:inline-flex; align-items:center; gap:10px;
+    text-decoration: none;
+  }
+  .wl-btn:hover{ border-color: var(--wl-accent); color: var(--wl-accent); transform: translateY(1px); background:#fff7e0; }
+  .wl-btn.primary{
+    background: var(--wl-accent); color:#1f2937; border-color: transparent; box-shadow: 0 6px 12px rgba(251,183,16,.35);
+  }
+  .wl-btn.primary:hover{ filter: brightness(1.03); transform: translateY(-1px); }
+
+  /* Toolbar */
+  .wl-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin: 16px 0 22px; }
+  .wl-count{ color: var(--wl-muted); }
+  .wl-select{
+    background:#fff; color: var(--wl-ink); border:1px solid var(--wl-stroke);
+    padding:10px 12px; border-radius:10px; outline:none;
+  }
+  .wl-select:focus{ box-shadow:0 0 0 3px rgba(251,183,16,.35); border-color: var(--wl-accent); }
+
+  /* Grid */
+  .wl-grid{ display:grid; grid-template-columns: repeat(12, 1fr); gap:16px; }
+  @media (max-width: 1024px){ .wl-grid{ grid-template-columns: repeat(8, 1fr); } }
+  @media (max-width: 640px){ .wl-grid{ grid-template-columns: repeat(4, 1fr); } }
+
+  /* Card */
+  .wl-card{
+    grid-column: span 4; position: relative; overflow: hidden; border-radius:16px;
+    background: var(--wl-card);
+    border: 1px solid var(--wl-stroke);
+    transition: .25s ease; box-shadow: var(--wl-shadow);
+  }
+  .wl-card:hover{ transform: translateY(-3px); background: var(--wl-card-hover); border-color: rgba(17,24,39,.18); box-shadow: var(--wl-shadow-hover); }
+
+  /* Image */
+  .wl-img-wrap{ position: relative; aspect-ratio: 4/3; overflow:hidden; background: #f3f4f6; border-bottom: 1px solid var(--wl-stroke); }
+  .wl-img{ width:100%; height:100%; object-fit: cover; display:block; transition: transform .5s ease; }
+  .wl-card:hover .wl-img{ transform: scale(1.06); }
+
+  /* Badges & quick actions */
+  .wl-badge{
+    position:absolute; top:12px; left:12px; background:#fff; color:var(--wl-ink); font-size:12px;
+    padding:6px 10px; border-radius:999px; border:1px solid var(--wl-stroke);
+    box-shadow: 0 6px 12px rgba(17,24,39,.06);
+  }
+  .wl-like{ position:absolute; top:12px; right:12px; display:flex; gap:8px; }
+  .wl-icon-btn{
+    width:38px; height:38px; display:grid; place-items:center; border-radius:999px; cursor:pointer;
+    border:1px solid var(--wl-stroke); background:#fff; color:var(--wl-ink); transition:.2s ease;
+    box-shadow: 0 6px 12px rgba(17,24,39,.06);
+  }
+  .wl-icon-btn:hover{ border-color: rgba(17,24,39,.2); transform: translateY(-1px); background:#fafafa; }
+  .wl-icon-btn.danger:hover{ color:#b91c1c; border-color:#fecaca; background:#fff1f2; }
+
+  /* Body */
+  .wl-body{ padding:16px 16px 14px; }
+  .wl-name{
+    font-weight: 700; color:var(--wl-ink); line-height:1.35; display:block; margin-bottom:6px; min-height: 44px; text-decoration: none;
+  }
+  .wl-name:hover{ color:#0f172a; }
+  .wl-meta{ color: var(--wl-muted); font-size: 12px; display:flex; gap:8px; align-items:center; margin-bottom: 10px; }
+  .wl-dot::before{ content:'•'; margin: 0 6px; color: #cbd5e1; }
+  .wl-price{ display:flex; align-items: baseline; gap:10px; margin-bottom: 12px; }
+  .wl-price-now{ color:var(--wl-ink); font-weight:800; font-size: 18px; letter-spacing:.2px; }
+  .wl-price-old{ color: #9ca3af; text-decoration: line-through; font-size: 13px; }
+  .wl-chip-off{
+    background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;
+    padding:4px 8px; border-radius:999px; font-size:11px;
+  }
+
+  /* Actions */
+  .wl-actions{ display:flex; gap:10px; }
+  .wl-add, .wl-remove{
+    flex:1; text-align:center; padding:10px 12px; border-radius:12px; border:1px solid var(--wl-stroke);
+    background:#fff; color:var(--wl-ink); cursor:pointer; transition:.2s ease;
+  }
+  .wl-add:hover{ border-color: var(--wl-accent); color: var(--wl-accent); background:#fff7e0; }
+  .wl-remove{ background:#fff; }
+  .wl-remove:hover{ border-color: #fecaca; color:#b91c1c; background:#fff1f2; }
+
+  /* Empty state */
+  .wl-empty{
+    border:1px dashed var(--wl-stroke); border-radius:16px; padding:48px; text-align:center;
+    color:#6b7280; background:#fff;
+    box-shadow: var(--wl-shadow);
+  }
+
+  /* Pagination */
+  .wl-pager{ display:flex; justify-content:center; gap:10px; margin-top: 28px; }
+  .wl-page{
+    min-width:40px; text-align:center; padding:10px 12px; border-radius:12px;
+    color:var(--wl-ink); border:1px solid var(--wl-stroke); background:#fff; text-decoration:none;
+    transition:.2s ease; box-shadow: 0 4px 10px rgba(17,24,39,.04);
+  }
+  .wl-page:hover{ border-color: var(--wl-accent); color: var(--wl-accent); transform: translateY(-1px); background:#fffdf4; }
+  .wl-page.active{
+    background: var(--wl-accent); color:#1f2937; border-color: transparent; box-shadow: 0 6px 12px rgba(251,183,16,.35);
+  }
+  .wl-page.disabled{ opacity:.5; pointer-events:none; }
+
+  /* Small refinements */
+  .wl-card .focus-ring:focus{ outline:none; box-shadow:0 0 0 3px rgba(251,183,16,.35); border-color: var(--wl-accent); }
+
+  /* Responsive tweaks */
+  @media (max-width: 640px){
+    .wl-wrap{ margin: 28px auto 64px; }
+    .wl-body{ padding:14px; }
+    .wl-title{ font-size: 24px; }
+    .wl-btn{ padding:9px 12px; font-size:13px; }
+    .wl-add, .wl-remove{ padding:9px 10px; }
+  }
+/* === Responsive fixes (append-only) — keeps desktop unchanged === */
+
+/* Hard stop for rogue overflow + consistent sizing */
+* { box-sizing: border-box; }
+html, body { overflow-x: hidden; }
+img, svg, video { max-width: 100%; height: auto; display: block; }
+
+/* Let top bars wrap on smaller widths */
+.wl-hero,
+.wl-toolbar { flex-wrap: wrap; }
+
+/* Make meta lines and actions wrap instead of pushing width */
+.wl-meta { flex-wrap: wrap; }
+.wl-actions { flex-wrap: wrap; }
+
+/* Prevent text from forcing horizontal scroll */
+.wl-name { word-break: break-word; overflow-wrap: anywhere; }
+.wl-badge {
+  max-width: calc(100% - 24px);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-body{background: var(--wl-bg);}
-.wl-wrap{ max-width: 1200px; margin: 40px auto 80px; padding: 0 20px; }
+/* Grid items shouldn’t grow wider than their column */
+.wl-card { min-width: 0; }
 
-.wl-hero{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom: 24px; }
-.wl-title{
-  font-size: clamp(24px, 2.4vw, 36px); color:#fff; font-weight:700; letter-spacing:.3px;
-  display:flex; align-items:center; gap:12px;
-}
-.wl-sub{ color: var(--wl-muted); margin-top:4px; font-size:14px; }
-.wl-ctas{ display:flex; gap:10px; flex-wrap: wrap; }
-
-.wl-btn{
-  border:1px solid var(--wl-stroke); background:transparent; color:#fff; padding:10px 14px;
-  border-radius:999px; font-size:14px; cursor:pointer; transition:.2s ease; display:inline-flex; align-items:center; gap:10px;
-  backdrop-filter: blur(6px); text-decoration: none;
-}
-.wl-btn:hover{ border-color: var(--wl-accent); color: var(--wl-accent); transform: translateY(-1px); }
-.wl-btn.primary{ background: linear-gradient(135deg, var(--wl-accent), #ffd485); color:#1c1f25; border-color: transparent; }
-.wl-btn.primary:hover{ filter: brightness(1.03); transform: translateY(-1px); }
-
-.wl-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin: 16px 0 22px; }
-.wl-count{ color: var(--wl-muted); }
-.wl-select{
-  background: var(--wl-card); color:#fff; border:1px solid var(--wl-stroke);
-  padding:10px 12px; border-radius:10px; outline:none;
+/* Inputs shouldn’t overflow on narrow phones */
+@media (max-width: 420px){
+  .wl-select { width: 100%; }
 }
 
-/* Grid */
-.wl-grid{ display:grid; grid-template-columns: repeat(12, 1fr); gap:16px; }
-@media (max-width: 1024px){ .wl-grid{ grid-template-columns: repeat(8, 1fr); } }
-@media (max-width: 640px){ .wl-grid{ grid-template-columns: repeat(4, 1fr); } }
-
-.wl-card{
-  grid-column: span 4; position: relative; overflow: hidden; border-radius:20px;
-  background: radial-gradient(1200px 200px at -10% -10%, rgba(255,255,255,.05), transparent 30%), var(--wl-card);
-  border: 1px solid var(--wl-stroke);
-  transition: .25s ease; backdrop-filter: blur(6px);
-}
-.wl-card:hover{ transform: translateY(-3px); background: var(--wl-card-hover); border-color: rgba(255,255,255,0.16); }
-
-.wl-img-wrap{ position: relative; aspect-ratio: 4/3; overflow:hidden; background: #0a0c10; border-bottom: 1px solid var(--wl-stroke); }
-.wl-img{ width:100%; height:100%; object-fit: cover; display:block; transition: transform .5s ease; }
-.wl-card:hover .wl-img{ transform: scale(1.06); }
-
-.wl-badge{
-  position:absolute; top:12px; left:12px; background: rgba(255,255,255,0.12); color:#fff; font-size:12px;
-  padding:6px 10px; border-radius:999px; border:1px solid var(--wl-stroke);
-  backdrop-filter: blur(8px);
-}
-.wl-like{ position:absolute; top:12px; right:12px; display:flex; gap:8px; }
-.wl-icon-btn{
-  width:38px; height:38px; display:grid; place-items:center; border-radius:999px; cursor:pointer;
-  border:1px solid var(--wl-stroke); background: rgba(0,0,0,.4); color:#fff; transition:.2s ease; backdrop-filter: blur(8px);
-}
-.wl-icon-btn:hover{ border-color: rgba(255,255,255,0.2); transform: translateY(-1px); }
-.wl-icon-btn.danger:hover{ color: #ff6b6b; border-color: #ff6b6b50; }
-
-/* Body */
-.wl-body{ padding:16px 16px 14px; }
-.wl-name{ font-weight: 700; color:#fff; line-height:1.35; display:block; margin-bottom:6px; min-height: 44px; text-decoration: none; }
-.wl-meta{ color: var(--wl-muted); font-size: 12px; display:flex; gap:8px; align-items:center; margin-bottom: 10px; }
-.wl-dot::before{ content:'•'; margin: 0 6px; color: var(--wl-stroke); }
-.wl-price{ display:flex; align-items: baseline; gap:10px; margin-bottom: 12px; }
-.wl-price-now{ color:#fff; font-weight:800; font-size: 18px; letter-spacing:.2px; }
-.wl-price-old{ color: #7b818a; text-decoration: line-through; font-size: 13px; }
-.wl-chip-off{
-  background: rgba(40,167,69,.2); color:#7dffa5; border:1px solid rgba(25,135,84,.35);
-  padding:4px 8px; border-radius:999px; font-size:11px;
+/* Super-small screens: use auto-fit so cards don’t get cramped.
+   Desktop (>=1024px) remains exactly as you have it (12 cols, span 4). */
+@media (max-width: 480px){
+  .wl-grid{
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    justify-content: center; /* center a single narrow column */
+    gap: 14px;
+  }
+  .wl-add, .wl-remove{ flex: 1 1 160px; }
 }
 
-/* Actions */
-.wl-actions{ display:flex; gap:10px; }
-.wl-add, .wl-remove{
-  flex:1; text-align:center; padding:10px 12px; border-radius:12px; border:1px solid var(--wl-stroke);
-  background: #10141b; color:#fff; cursor:pointer; transition:.2s ease;
-}
-.wl-add:hover{ border-color: var(--wl-accent); color: var(--wl-accent); }
-.wl-remove{ background: #191016; }
-.wl-remove:hover{ border-color: #ff6b6b; color:#ff6b6b; }
-
-/* Empty */
-.wl-empty{
-  border:1px dashed var(--wl-stroke); border-radius:20px; padding:48px; text-align:center;
-  color:#c3c7ce; background: linear-gradient(180deg, rgba(255,255,255,.02), transparent);
+/* Nice-to-have: if aspect-ratio isn’t supported, keep images correct */
+@supports not (aspect-ratio: 4 / 3){
+  .wl-img-wrap { position: relative; height: 0; padding-top: 75%; }
+  .wl-img { position: absolute; inset: 0; }
 }
 
-/* Pagination */
-.wl-pager{ display:flex; justify-content:center; gap:10px; margin-top: 28px; }
-.wl-page{
-  min-width:40px; text-align:center; padding:10px 12px; border-radius:12px;
-  color:#fff; border:1px solid var(--wl-stroke); background: transparent; text-decoration:none;
-  transition:.2s ease;
+/* Reduce motion preference */
+@media (prefers-reduced-motion: reduce){
+  .wl-card, .wl-img { transition: none !important; }
 }
-.wl-page:hover{ border-color: var(--wl-accent); color: var(--wl-accent); transform: translateY(-1px); }
-.wl-page.active{
-  background: linear-gradient(135deg, var(--wl-accent), #ffd485); color:#1c1f25; border-color: transparent;
+/* === Responsive fixes (append-only) — keeps desktop unchanged === */
+
+/* Hard stop for rogue overflow + consistent sizing */
+* { box-sizing: border-box; }
+html, body { overflow-x: hidden; }
+img, svg, video { max-width: 100%; height: auto; display: block; }
+
+/* Let top bars wrap on smaller widths */
+.wl-hero,
+.wl-toolbar { flex-wrap: wrap; }
+
+/* Make meta lines and actions wrap instead of pushing width */
+.wl-meta { flex-wrap: wrap; }
+.wl-actions { flex-wrap: wrap; }
+
+/* Prevent text from forcing horizontal scroll */
+.wl-name { word-break: break-word; overflow-wrap: anywhere; }
+.wl-badge {
+  max-width: calc(100% - 24px);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.wl-page.disabled{ opacity:.4; pointer-events:none; }
+
+/* Grid items shouldn’t grow wider than their column */
+.wl-card { min-width: 0; }
+
+/* Inputs shouldn’t overflow on narrow phones */
+@media (max-width: 420px){
+  .wl-select { width: 100%; }
+}
+
+/* Super-small screens: use auto-fit so cards don’t get cramped.
+   Desktop (>=1024px) remains exactly as you have it (12 cols, span 4). */
+@media (max-width: 480px){
+  .wl-grid{
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    justify-content: center; /* center a single narrow column */
+    gap: 14px;
+  }
+  .wl-add, .wl-remove{ flex: 1 1 160px; }
+}
+
+/* Nice-to-have: if aspect-ratio isn’t supported, keep images correct */
+@supports not (aspect-ratio: 4 / 3){
+  .wl-img-wrap { position: relative; height: 0; padding-top: 75%; }
+  .wl-img { position: absolute; inset: 0; }
+}
+
+/* Reduce motion preference */
+@media (prefers-reduced-motion: reduce){
+  .wl-card, .wl-img { transition: none !important; }
+}
+/* === Fix: make the sort <select> wide enough & non-clipping === */
+.wl-toolbar .wl-select{
+  /* allow the control to grow to fit the longest option */
+  width: max-content;
+  min-width: 210px;      /* fits "Price: Low to High" comfortably */
+  max-width: 100%;
+  white-space: nowrap;   /* keep label on one line */
+}
+
+/* If the browser doesn't support max-content, fall back gracefully */
+@supports not (width: max-content){
+  .wl-toolbar .wl-select{ width: auto; }
+}
+
+/* Small phones: let it span the row so it never overflows */
+@media (max-width: 420px){
+  .wl-toolbar{ gap: 10px; }
+  .wl-toolbar .wl-select{
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* (Optional) Ensure the dropdown isn’t visually covered by neighbors */
+.wl-toolbar .wl-select:focus{
+  position: relative;
+  z-index: 2;
+}
+
+
+/* === Fix: make the Sort <select> wide enough; keep desktop layout === */
+
+/* Let the right-hand container reserve real space for the select */
+.wl-toolbar > div:last-child{
+  flex: 0 0 auto;          /* don't shrink */
+  min-width: 280px;        /* reserve room for long labels */
+}
+
+/* The select itself: wide enough for "Price: Low to High" */
+.wl-toolbar .wl-select{
+  display: inline-block;
+  width: 280px;            /* actual control width => popup width */
+  min-width: 280px;
+  max-width: 100%;
+  white-space: nowrap;     /* label on one line */
+}
+
+/* If your toolbar wraps, make the select span the row on small screens */
+@media (max-width: 520px){
+  .wl-toolbar{ gap: 10px; flex-wrap: wrap; }
+  .wl-toolbar > div:last-child{ min-width: 0; width: 100%; }
+  .wl-toolbar .wl-select{ width: 100%; min-width: 0; }
+}
+
+/* Focus ring above neighbors (prevents visual clipping) */
+.wl-toolbar .wl-select:focus{ position: relative; z-index: 2; }

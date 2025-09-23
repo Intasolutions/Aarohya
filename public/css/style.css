@@ -312,3 +312,27 @@
 
 
 
+/* Brand accent + nicer active state */
+.navbar-light .navbar-nav .nav-link {
+  font-weight: 600;
+  padding: .6rem .8rem;
+}
+.navbar-light .navbar-nav .nav-link:hover { color: #f59e0b; }      /* hover */
+.navbar-light .navbar-nav .active > .nav-link { color: #fbb710; }  /* active */
+
+/* Improve toggler contrast on light bg */
+.navbar-light .navbar-toggler { border-color: rgba(0,0,0,.1); }
+/* Make navbar links larger and bold */
+.navbar-nav .nav-link {
+  font-size: 1.2rem;   /* bigger text */
+  font-weight: 600;    /* semi-bold */
+  padding: 0.75rem 1rem; /* bigger click area */
+}
+
+.navbar-nav .nav-link:hover {
+  color: #f59e0b; /* brand hover */
+}
+
+.navbar-nav .active > .nav-link {
+  color: #fbb710; /* brand active */
+}

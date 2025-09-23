@@ -1,21 +1,240 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Login</title>
-  <link rel="stylesheet" href="/css/style.css">
+  <meta charset="UTF-8" />
+  <title><%= (typeof pageTitle!=='undefined' ? pageTitle : 'Login | Luxe Jewellery') %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --ivory:#fcf8f2;       /* page background */
+      --panel:#ffffff;       /* card */
+      --ink:#1f232b;         /* text */
+      --muted:#6d717c;       /* sub text */
+      --line:#ebe6de;        /* divider */
+      --input:#eaf2ff;       /* light blue input bg */
+      --input-bd:#cfe0ff;    /* input border */
+      --gold:#d4af37;        /* button gradient */
+      --gold-2:#c5a880;
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{ margin:0; background:var(--ivory);
+      font-family:'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color:var(--ink); }
+
+    /* LAYOUT */
+    .wrap{min-height:100dvh; display:grid; grid-template-columns:1fr 1fr;}
+
+    /* LEFT: big product on soft background */
+    .left{ position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden; perspective:1000px; }
+    .left::before{ /* soft vignette */
+      content:""; position:absolute; inset:-20%;
+      background:radial-gradient(800px 600px at 25% 50%, rgba(255,255,255,.85), rgba(0,0,0,0) 60%);
+      pointer-events:none;
+    }
+    .left-img{ width:min(620px, 100%); height:300px; display:block; object-fit:contain; filter:drop-shadow(0 10px 24px rgba(0,0,0,.06));
+      will-change: transform, opacity, filter; transform-origin:50% 60%; }
+
+    /* CENTER DIVIDER with moving gradient animation */
+    .wrap::after{
+      content:""; position:fixed; top:0; bottom:0; left:50%; width:2px;
+      background:linear-gradient(to bottom, transparent, var(--gold), transparent);
+      background-size:100% 200%;
+      animation: shimmer 3s linear infinite;
+      transform:translateX(-1px);
+    }
+    @keyframes shimmer {
+      0% { background-position: 0% -100%; }
+      100% { background-position: 0% 200%; }
+    }
+
+    /* RIGHT: clean form */
+    .right{ display:flex; align-items:center; justify-content:center; padding:64px 48px; background:#fff9f0a6; }
+    .card{ width:min(520px, 92vw); background:transparent; text-align:left; will-change:transform,opacity; }
+    .title{ font-family:'Playfair Display', serif; font-size:48px; line-height:1.05; margin:0 0 8px; font-weight:700; overflow:hidden; }
+    .title .reveal-line{ display:block; transform:translateY(100%); }
+    .sub{ color:var(--muted); margin:0 0 28px; font-size:16px; opacity:0; transform:translateY(12px); }
+
+    .field{ margin:18px 0 18px; opacity:0; transform:translateY(16px); }
+    .label{ display:block; font-size:14px; margin-bottom:8px; color:#3b3f46; }
+    .input{ width:100%; padding:14px 16px; border-radius:12px; border:1px solid var(--input-bd); background:var(--input);
+      font-size:16px; outline:0; transition:box-shadow .2s, border-color .2s, transform .18s ease; }
+    .input::placeholder{ color:#7f8aa5; }
+    .input:focus{ border-color:#9cc0ff; box-shadow:0 0 0 6px rgba(156,192,255,.28); background:#fff; transform:translateY(-1px); }
+
+    .btn{ width:100%; padding:16px 18px; border:0; border-radius:14px; cursor:pointer; font-weight:800; font-size:18px; color:#fff;
+      background:linear-gradient(90deg, var(--gold), var(--gold-2)); box-shadow:0 12px 22px rgba(212,175,55,.28);
+      transition:transform .18s ease, box-shadow .18s ease; opacity:0; transform:translateY(20px) scale(.98); }
+    .btn:hover{ transform:translateY(-1px) scale(1.01); box-shadow:0 16px 28px rgba(212,175,55,.36); }
+
+    .meta{ font-size:15px; color:var(--muted); margin-top:16px; text-align:center; opacity:0; transform:translateY(12px); }
+    .link{ color:#2f343c; text-underline-offset:3px; border-bottom:1px solid var(--gold); text-decoration:none; }
+
+    /* Alerts (optional) */
+    .alert{ border-radius:12px; padding:10px 12px; margin:12px 0; font-size:14px; }
+    .alert-error{ color:#8a1f1f;background:#ffe8e8;border:1px solid #ffb8b8; }
+    .alert-success{ color:#1f6a3b;background:#e8ffef;border:1px solid #a7f0c1; }
+    .error-text{ color:#8a1f1f; font-size:12px; margin-top:6px; }
+
+    /* Subtle cinematic gold sweep overlay */
+    .gold-sweep { position: fixed; pointer-events: none; inset: 0; background: linear-gradient(120deg, transparent 0%, rgba(212,175,55,0.08) 25%, transparent 60%);
+      mix-blend-mode: soft-light; opacity:0; }
+
+    /* Responsive */
+    @media (max-width: 980px){
+      .wrap{ grid-template-columns: 1fr; }
+      .wrap::after{ display:none; }
+      .left{ height: 40vh; }
+      .right{ padding: 32px 22px; }
+      .title{ font-size:38px; }
+    }
+  </style>
 </head>
 <body>
-  <h2>Login</h2>
-  <% if (error) { %>
-    <p style="color:red;"><%= error %></p>
-  <% } %>
+  <div class="wrap">
+    <aside class="left" aria-hidden="true">
+      <!-- Either pass heroImageUrl from your route or let the <img> be the source -->
+      <img class="left-img" src="<%= (typeof heroImageUrl!=='undefined' ? heroImageUrl : '/public/images/logo2.png') %>" alt="Bracelet" />
+    </aside>
 
-  <form action="/auth/login" method="POST">
-    <input type="email" name="email" placeholder="Email" required><br>
-    <input type="password" name="password" placeholder="Password" required><br>
-    <button type="submit">Login</button>
-  </form>
-  <p>Don't have an account? <a href="/auth/signup">Signup</a></p>
+    <main class="right">
+      <section class="card" role="form" aria-labelledby="login-title">
+        <h1 id="login-title" class="title"><span class="reveal-line">Login</span></h1>
+        <p class="sub">Welcome back to Luxe Jewellery ✨</p>
+
+        <% if (typeof success!=='undefined' && success) { %>
+          <div class="alert alert-success"><%= success %></div>
+        <% } %>
+        <% if (typeof error!=='undefined' && error) { %>
+          <div class="alert alert-error"><%= error %></div>
+        <% } %>
+        <% if (typeof messages!=='undefined' && Array.isArray(messages) && messages.length) { %>
+          <% messages.forEach(function(m){ %>
+            <div class="alert <%= m.type === 'success' ? 'alert-success' : 'alert-error' %>"><%= m.text %></div>
+          <% }) %>
+        <% } %>
+
+        <form action="<%= (typeof action!=='undefined' ? action : '/auth/login') %>" method="POST" autocomplete="on" novalidate>
+          <% if (typeof csrfToken!=='undefined' && csrfToken) { %>
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <% } %>
+
+          <div class="field">
+            <label class="label" for="email">Email</label>
+            <input class="input" id="email" type="email" name="email" inputmode="email" autocomplete="email" required
+              placeholder="you@example.com"
+              value="<%= (typeof old!=='undefined' && old && old.email) ? old.email : '' %>"
+              aria-invalid="<%= (typeof fieldErrors!=='undefined' && fieldErrors && fieldErrors.email) ? 'true' : 'false' %>"
+              aria-describedby="<%= (typeof fieldErrors!=='undefined' && fieldErrors && fieldErrors.email) ? 'email-error' : '' %>"/>
+            <% if (typeof fieldErrors!=='undefined' && fieldErrors && fieldErrors.email) { %>
+              <div id="email-error" class="error-text"><%= fieldErrors.email %></div>
+            <% } %>
+          </div>
+
+          <div class="field">
+            <label class="label" for="password">Password</label>
+            <input class="input" id="password" type="password" name="password" autocomplete="current-password" required
+              placeholder="••••••••"
+              aria-invalid="<%= (typeof fieldErrors!=='undefined' && fieldErrors && fieldErrors.password) ? 'true' : 'false' %>"
+              aria-describedby="<%= (typeof fieldErrors!=='undefined' && fieldErrors && fieldErrors.password) ? 'password-error' : '' %>"/>
+            <% if (typeof fieldErrors!=='undefined' && fieldErrors && fieldErrors.password) { %>
+              <div id="password-error" class="error-text"><%= fieldErrors.password %></div>
+            <% } %>
+          </div>
+
+          <button class="btn" type="submit" id="loginBtn">Login</button>
+
+          <p class="meta">Don’t have an account? <a class="link" href="<%= (typeof signupUrl!=='undefined' ? signupUrl : '/auth/signup') %>">Signup</a></p>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <!-- Subtle cinematic gold sweep overlay -->
+  <div class="gold-sweep" aria-hidden="true"></div>
+
+  <!-- GSAP (GreenSock) -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+
+  <script>
+    // Respect reduced motion
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!prefersReduced && window.gsap) {
+      gsap.registerPlugin(ScrollTrigger);
+
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+      // 1) Hero image entrance
+      tl.fromTo('.left-img',
+        { y: 30, scale: 1.12, opacity: 0, filter: 'blur(6px)' },
+        { y: 0, scale: 1, opacity: 1, filter: 'blur(0px)', duration: 1.1 }
+      );
+
+      // 2) Title mask slide
+      tl.to('.title .reveal-line', { y: '0%', duration: 0.85 }, '-=0.55');
+
+      // 3) Sub copy
+      tl.to('.sub', { opacity: 1, y: 0, duration: 0.55 }, '-=0.35');
+
+      // 4) Fields stagger
+      tl.to(gsap.utils.toArray('.field'), { opacity: 1, y: 0, duration: 0.45, stagger: 0.08 }, '-=0.15');
+
+      // 5) CTA & meta
+      tl.to('.btn', { opacity: 1, y: 0, scale: 1, duration: 0.5 }, '-=0.05');
+      tl.to('.meta', { opacity: 1, y: 0, duration: 0.45 }, '-=0.3');
+
+      // 6) Subtle golden sweep
+      gsap.fromTo('.gold-sweep', { opacity: 0 }, { opacity: 1, duration: 0.6, ease: 'power2.out' });
+      gsap.to('.gold-sweep', { xPercent: 18, duration: 1.4, ease: 'power1.out', onComplete(){
+        gsap.to('.gold-sweep', { opacity: 0, duration: 0.7, ease: 'power1.out' });
+      }});
+
+      // Parallax tilt on hero image (subtle)
+      const hero = document.querySelector('.left');
+      const img = document.querySelector('.left-img');
+      if (hero && img) {
+        const qx = gsap.quickTo(img, 'rotationY', { duration: 0.5, ease: 'power2.out' });
+        const qy = gsap.quickTo(img, 'rotationX', { duration: 0.5, ease: 'power2.out' });
+        const qz = gsap.quickTo(img, 'y', { duration: 0.5, ease: 'power2.out' });
+        hero.addEventListener('pointermove', (e) => {
+          const r = hero.getBoundingClientRect();
+          const cx = (e.clientX - r.left) / r.width - 0.5;
+          const cy = (e.clientY - r.top) / r.height - 0.5;
+          qx(cx * 8);
+          qy(-cy * 8);
+          qz(cy * 6);
+        });
+        hero.addEventListener('pointerleave', () => { qx(0); qy(0); qz(0); });
+      }
+
+      // Scroll entrance on small screens
+      ScrollTrigger.matchMedia({
+        '(max-width: 980px)': function(){
+          gsap.from('.card', { y: 24, opacity: 0, duration: 0.8, ease: 'power2.out',
+            scrollTrigger: { trigger: '.card', start: 'top 80%' }
+          });
+        }
+      });
+    }
+  </script>
+
+  <!-- Button micro-parallax (kept) -->
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('loginBtn');
+      if (!btn) return;
+      btn.addEventListener('pointermove', (e)=>{
+        const r = btn.getBoundingClientRect();
+        const dx = e.clientX - (r.left + r.width/2);
+        const dy = e.clientY - (r.top + r.height/2);
+        btn.style.transform = `translate(${dx*0.05}px, ${dy*0.05}px)`;
+      });
+      btn.addEventListener('pointerleave', ()=> btn.style.transform = 'translate(0,0)');
+    });
+  </script>
 </body>
 </html>
-
