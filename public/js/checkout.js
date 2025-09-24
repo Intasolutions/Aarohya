@@ -1,115 +1,138 @@
-(function(){
-  const $ = window.jQuery;
-  const issues = $('#checkoutIssues');
-  const addrModeRadios = $('input[name="addrMode"]');
-  const savedWrap = $('#savedAddrWrap');
-  const newWrap = $('#newAddrWrap');
-  const placeBtn = $('#placeOrderBtn');
-  const form = $('#checkoutForm');
+// public/js/checkout.js
+(function () {
+  const form = document.getElementById('checkoutForm');
+  const issues = document.getElementById('checkoutIssues');
+  const placeBtn = document.getElementById('placeOrderBtn');
 
-  function setMode(mode){
-    const isNew = mode === 'new';
-    savedWrap.toggle(!isNew);
-    newWrap.toggle(isNew);
-  }
-  if (window.__forceNewAddress) {
-    $('input[name="addrMode"][value="new"]').prop('checked', true);
-    setMode('new');
-  }
+  if (!form) return;
 
-  addrModeRadios.on('change', function(){
-    setMode(this.value);
-  });
-
-  savedWrap.on('change', 'input[name="addressId"]', function(){
-    savedWrap.find('.addr-tile').removeClass('active');
-    $(this).closest('.addr-tile').addClass('active');
-  });
-
-  function showIssues(list){
-    if (!list || !list.length){ issues.removeClass('show').empty(); return; }
-    const html = list.map(i => `
-      <div class="issue ${i.type || 'warn'}">
-        <i class="fa fa-exclamation-circle"></i>
-        <div>${i.msg}</div>
-      </div>`).join('');
-    issues.html(html).addClass('show');
-    window.scrollTo({ top: issues.offset().top - 80, behavior: 'smooth' });
+  function showIssues(list) {
+    if (!issues) return;
+    if (!list || !list.length) { issues.classList.remove('show'); issues.innerHTML = ''; return; }
+    issues.innerHTML = list.map(i => (
+      `<div class="issue ${i.type || 'warn'}">
+         <i class="fa fa-exclamation-circle"></i>
+         <div>${i.msg}</div>
+       </div>`
+    )).join('');
+    issues.classList.add('show');
+    window.scrollTo({ top: issues.offsetTop - 80, behavior: 'smooth' });
   }
 
-  function validate(){
-    const errs = [];
-    const useNew = $('input[name="addrMode"]:checked').val() === 'new';
+  function getPayload() {
+    const fd = new FormData(form);
+    const paymentMethod = (fd.get('paymentMethod') || 'cod').toLowerCase();
+    const addrMode = fd.get('addrMode') || 'saved';
 
-    if (!useNew) {
-      if (!$('input[name="addressId"]:checked').length) {
-        errs.push({type:'warn', msg:'Please select a saved address or choose “New address”.'});
-      }
+    const payload = {
+      paymentMethod,
+      note: (fd.get('note') || '').trim()
+    };
+
+    if (addrMode === 'new') {
+      payload.addressBody = {
+        addressType: fd.get('addressType'),
+        name: fd.get('name'),
+        apartment: fd.get('apartment'),
+        building: fd.get('building'),
+        street: fd.get('street'),
+        landmark: fd.get('landmark') || '',
+        city: fd.get('city'),
+        state: fd.get('state'),
+        country: fd.get('country') || 'India',
+        zip: fd.get('zip'),
+        phone: fd.get('phone'),
+        altPhone: fd.get('altPhone') || ''
+      };
     } else {
-      const req = ['name','apartment','building','street','city','state','zip','phone'];
-      req.forEach(id=>{
-        if (!($(`[name="${id}"]`).val() || '').trim())
-          errs.push({type:'error', msg:`${id[0].toUpperCase()+id.slice(1)} is required.`});
-      });
-      const zip = ($('[name="zip"]').val() || '').trim();
-      if (zip && !/^\d{6}$/.test(zip)) errs.push({type:'error', msg:'PIN / ZIP must be 6 digits.'});
+      payload.addressId = fd.get('addressId');
     }
-    return errs;
+    return payload;
   }
 
-  async function createRazorpayOrder() {
-    // Replace with your server call; return {orderId, amount, currency}
-    // const res = await fetch('/api/payments/razorpay/order', { method:'POST' });
-    // return res.json();
-    return null;
+  async function placeCOD(payload) {
+    const res = await fetch('/checkout/place-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Could not place order.');
+    }
+    window.location.href = data.redirectUrl || '/orders';
   }
 
-  form.on('submit', async function(e){
+  async function payWithRazorpay(payload) {
+    // 1) Create DB order + Razorpay Order
+    const res = await fetch('/create-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success || !data.razorpay) {
+      throw new Error(data.message || 'Unable to create payment order. Please try again.');
+    }
+    const { keyId, orderId, amount, currency, orderDbId, name, description, prefill } = data.razorpay;
+
+    if (typeof Razorpay === 'undefined') throw new Error('Payment library not loaded.');
+
+    // 2) Open Razorpay
+    const options = {
+      key: keyId,
+      order_id: orderId,
+      amount,
+      currency,
+      name: name || 'Aarohya',
+      description: description || 'Order Payment',
+      prefill: prefill || {},
+      handler: async function (resp) {
+        // 3) Verify on server
+        const verifyRes = await fetch('/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            razorpay_order_id: resp.razorpay_order_id,
+            razorpay_payment_id: resp.razorpay_payment_id,
+            razorpay_signature: resp.razorpay_signature,
+            orderDbId
+          })
+        });
+        const verifyData = await verifyRes.json().catch(() => ({}));
+        if (!verifyRes.ok || !verifyData.success) {
+          window.location.href = '/order/failure' + (orderDbId ? ('?orderId=' + orderDbId) : '');
+          return;
+        }
+        window.location.href = verifyData.redirectUrl || '/orders';
+      },
+      theme: { color: '#fbb710' }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', function (resp) {
+      showIssues([{ type: 'error', msg: resp.error?.description || 'Payment failed. Please try again or choose COD.' }]);
+      placeBtn?.classList.remove('loading');
+      if (placeBtn) placeBtn.disabled = false;
+    });
+    rzp.open();
+  }
+
+  form.addEventListener('submit', async function (e) {
     e.preventDefault();
     showIssues([]);
-    placeBtn.addClass('loading').attr('disabled', true);
+    if (placeBtn) { placeBtn.classList.add('loading'); placeBtn.disabled = true; }
 
-    const errs = validate();
-    if (errs.length){ showIssues(errs); placeBtn.removeClass('loading').attr('disabled', false); return; }
-
-    const payload = $(this).serializeArray().reduce((acc, f)=> (acc[f.name]=f.value, acc), {});
-    const method = (payload.paymentMethod || 'cod');
-
-    try{
-      if (method === 'razorpay' && window.Razorpay) {
-        const rzOrder = await createRazorpayOrder();
-        if (!rzOrder) throw new Error('Unable to create payment order. Please try again.');
-
-        const options = {
-          key: '<%= paymentKeyId || "" %>',
-          order_id: rzOrder.orderId,
-          name: 'Your Store',
-          description: 'Order Payment',
-          handler: async function (response) {
-            await fetch('/checkout/place', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ form: payload, razorpay: response })});
-            window.location.href = '/orders/thank-you';
-          },
-          theme: { color: '#fbb710' },
-          prefill: { name: payload.name, contact: payload.phone }
-        };
-        const rzp = new Razorpay(options);
-        rzp.on('payment.failed', function(resp){
-          showIssues([{type:'error', msg: resp.error?.description || 'Payment failed. Please try another method.'}]);
-          placeBtn.removeClass('loading').attr('disabled', false);
-        });
-        rzp.open();
+    try {
+      const payload = getPayload();
+      if (payload.paymentMethod === 'razorpay') {
+        await payWithRazorpay(payload);
       } else {
-        const res = await fetch('/checkout/place', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ form: payload })
-        });
-        if (!res.ok) throw new Error('Could not place order.');
-        window.location.href = '/orders/thank-you';
+        await placeCOD(payload);
       }
-    } catch(err){
-      showIssues([{type:'error', msg: err.message || 'Something went wrong. Please try again.'}]);
-      placeBtn.removeClass('loading').attr('disabled', false);
+    } catch (err) {
+      showIssues([{ type: 'error', msg: err.message || 'Something went wrong. Please try again.' }]);
+      if (placeBtn) { placeBtn.classList.remove('loading'); placeBtn.disabled = false; }
     }
   });
 })();

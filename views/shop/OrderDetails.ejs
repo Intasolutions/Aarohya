@@ -54,7 +54,7 @@
     .on .dot,.on .bar{background:var(--brand)}
     .actions{display:flex;gap:8px;flex-wrap:wrap}
     .btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:8px 12px;border:1px solid var(--ring);text-decoration:none;color:#343a40;background:#fff}
-    .btn-primary{background:var(--brand);border-color:#var(--brand);color:#fff}
+    .btn-primary{background:var(--brand);color:#fff}
     .kv{display:grid;grid-template-columns:130px 1fr;gap:6px 10px}
     .kv .k{color:#868e96}
     .pill{display:inline-block;border:1px solid var(--ring);padding:2px 8px;border-radius:999px;font-size:12px;color:#495057}
@@ -92,7 +92,7 @@
       </div>
     <% } else { %>
       <%
-        const S = (norm.meta.status || '').toLowerCase();
+        const S = ((norm && norm.meta && norm.meta.status) || '').toLowerCase();
         const stClass =
           S.includes('cancel') ? 'st-cancelled' :
           S.includes('deliver') ? 'st-delivered' :
@@ -101,6 +101,7 @@
           S.includes('return') ? 'st-return' : 'st-pending';
         const placed = norm.meta.placedAt || norm.meta.createdAt;
         const raw = norm.raw || {};
+        const _payout = typeof payout !== 'undefined' && payout ? payout : null;
       %>
 
       <div class="heading">
@@ -292,6 +293,28 @@
                 </div>
               </div>
             <% } %>
+
+            <%
+// Show payout UI for COD when a return is requested or completed
+const isCOD = ((order.payment && order.payment.method) || '').toLowerCase() === 'cod';
+const st = (order.orderStatus || '').toLowerCase();
+const allowPayout = isCOD && (st === 'return_requested' || st === 'returned');
+%>
+
+<% if (allowPayout) { %>
+  <% if (!payout || payout.status === 'pending_destination') { %>
+    <a href="/orders/<%= order._id %>/payout" class="btn btn-warning btn-sm">Provide refund destination</a>
+  <% } else if (payout && payout.status === 'ready') { %>
+    <div class="alert alert-info mt-2">
+      Refund details received (<%= payout.destination?.method || '-' %>). Our team will process your payout shortly.
+    </div>
+  <% } else if (payout && payout.status === 'paid') { %>
+    <div class="alert alert-success mt-2">
+      Refund paid. Ref: <%= payout.transfer && payout.transfer.transactionRef || 'N/A' %>
+    </div>
+  <% } %>
+<% } %>
+
 
             <div class="actions" style="margin-top:12px">
               <a class="btn btn-primary" href="/orders/<%= order._id %>/invoice"><i class="fa fa-file-invoice"></i> Invoice</a>

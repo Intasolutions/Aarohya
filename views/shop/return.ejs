@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Request Return</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="/public/img/core-img/favicon.ico" />
+  <link rel="stylesheet" href="/public/css/core-style.css" />
+  <link rel="stylesheet" href="/public/css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    :root{
+      --ink:#212529; --muted:#868e96; --soft:#f1f3f5; --ring:#e9ecef; --brand:#b197fc; --bad:#e03131;
+    }
+    .wrap{max-width:920px;margin:20px auto;padding:0 16px}
+    .card{border:1px solid var(--soft); border-radius:14px; background:#fff; box-shadow:0 8px 26px rgba(0,0,0,.04); padding:16px}
+    .item{display:flex;align-items:center;gap:12px;border:1px solid var(--ring);border-radius:12px;padding:10px;margin-bottom:8px}
+    .item img{width:56px;height:56px;border-radius:8px;object-fit:cover;border:1px solid var(--soft)}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:800px){.row{grid-template-columns:1fr}}
+    .btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:10px 14px;border:1px solid var(--ring);background:#fff;color:#343a40;text-decoration:none;cursor:pointer}
+    .btn-primary{background:var(--brand);border-color:var(--brand);color:#fff}
+    .muted{color:var(--muted)}
+    .err{color:var(--bad);margin:8px 0}
+    .fld{display:flex;flex-direction:column;gap:6px}
+    .fld input,.fld select,.fld textarea{border:1px solid var(--ring);border-radius:10px;padding:10px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h2>Request Return</h2>
+    <p class="muted">Order #<%= order.orderId %></p>
+
+    <% if (!eligible) { %>
+      <div class="card">
+        <p class="err"><i class="fa fa-triangle-exclamation"></i> <%= reason %></p>
+        <a class="btn" href="/orders/<%= order._id %>"><i class="fa fa-arrow-left"></i> Back to Order</a>
+      </div>
+    <% } else { %>
+
+      <form class="card" method="POST" action="/orders/<%= order._id %>/return" enctype="multipart/form-data" onsubmit="return validateForm()">
+        <h3>Select items to return</h3>
+
+        <% if (!items || !items.length) { %>
+          <p class="muted">No items eligible for return.</p>
+        <% } else { %>
+          <% items.forEach(function(it, idx){ %>
+            <label class="item">
+              <input type="checkbox" name="items[<%= idx %>][selected]" value="1" />
+              <img src="/public/<%= it.img %>" alt="">
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><%= it.name %></div>
+                <small class="muted">Qty purchased: <%= it.qty %> <% if (it.color && it.color !== 'none') { %> • <%= it.color %><% } %></small>
+              </div>
+              <div>
+                <small class="muted">Return Qty</small><br/>
+                <input type="number" name="items[<%= idx %>][quantity]" min="1" max="<%= it.qty %>" value="1" style="width:90px" />
+              </div>
+              <input type="hidden" name="items[<%= idx %>][productId]" value="<%= it.id %>" />
+            </label>
+          <% }) %>
+        <% } %>
+
+        <div class="row" style="margin-top:12px">
+          <div class="fld">
+            <label>Reason</label>
+            <select name="reason" required>
+              <option value="">Select a reason</option>
+              <option value="damaged">Damaged / Defective</option>
+              <option value="wrong_item">Wrong item received</option>
+              <option value="not_as_described">Not as described</option>
+              <option value="quality_issue">Quality issue</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="fld">
+            <label>Photos (optional, up to 5)</label>
+            <input type="file" name="images" accept="image/*" multiple />
+            <small class="muted">Tip: add clear photos of defect/issue.</small>
+          </div>
+        </div>
+
+        <div class="fld" style="margin-top:8px">
+          <label>Description (optional)</label>
+          <textarea name="description" rows="4" placeholder="Describe the issue..."></textarea>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center;margin-top:14px">
+          <button type="submit" class="btn btn-primary"><i class="fa fa-undo"></i> Submit Return Request</button>
+          <a class="btn" href="/orders/<%= order._id %>"><i class="fa fa-arrow-left"></i> Back</a>
+        </div>
+      </form>
+
+      <script>
+        function validateForm(){
+          // ensure at least one checkbox with valid qty
+          const form = document.forms[0];
+          const checks = form.querySelectorAll('input[type="checkbox"][name^="items"]');
+          let selected = 0;
+          checks.forEach(cb => {
+            if (cb.checked) {
+              selected++;
+              const base = cb.name.replace('[selected]','');
+              const qtyInput = form.querySelector('input[name="'+base+'[quantity]"]');
+              const max = Number(qtyInput.getAttribute('max')||1);
+              const val = Number(qtyInput.value||0);
+              if (val < 1 || val > max) {
+                alert("Please enter a valid return quantity (1 to " + max + ").");
+                qtyInput.focus();
+                selected = -999;
+              }
+            }
+          });
+          if (selected <= 0) {
+            alert("Select at least one item to return.");
+            return false;
+          }
+          return selected > 0;
+        }
+      </script>
+    <% } %>
+  </div>
+</body>
+</html>

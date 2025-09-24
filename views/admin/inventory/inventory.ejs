@@ -1,0 +1,77 @@
+<%- include('../../partials/admin_head', { pageTitle: 'Inventory Management' }) %>
+
+<div class="container mt-4">
+  <h2>Inventory Management</h2>
+
+  <!-- Search -->
+  <form class="mb-3" method="get" action="/admin/inventory">
+    <div class="row g-2">
+      <div class="col-md-4">
+        <input type="text" name="search" value="<%= search %>" class="form-control" placeholder="Search products...">
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-primary">Search</button>
+      </div>
+    </div>
+  </form>
+
+  <table class="table table-bordered table-hover">
+    <thead>
+      <tr>
+        <th><a href="?sortField=productName&sortOrder=<%= sortField==='productName' && sortOrder==='asc' ? 'desc' : 'asc' %>">Name</a></th>
+        <th>SKU</th>
+        <th>Category</th>
+        <th><a href="?sortField=quantity&sortOrder=<%= sortField==='quantity' && sortOrder==='asc' ? 'desc' : 'asc' %>">Stock</a></th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% products.forEach(product => { %>
+        <tr>
+          <td><%= product.productName %></td>
+          <td><%= product.productNumber %></td>
+          <td><%= product.category?.name || '-' %></td>
+          <td>
+            <input type="number" class="form-control quantity-input" value="<%= product.quantity %>" data-id="<%= product._id %>">
+          </td>
+          <td>
+            <button class="btn btn-success btn-update-stock" data-id="<%= product._id %>">Update</button>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  <nav>
+    <ul class="pagination">
+      <% for(let i=1; i<=totalPages; i++){ %>
+        <li class="page-item <%= currentPage===i ? 'active' : '' %>">
+          <a class="page-link" href="?page=<%= i %>&search=<%= search %>&sortField=<%= sortField %>&sortOrder=<%= sortOrder %>"><%= i %></a>
+        </li>
+      <% } %>
+    </ul>
+  </nav>
+</div>
+
+<script>
+document.querySelectorAll(".btn-update-stock").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const id = btn.dataset.id;
+    const quantity = document.querySelector(`.quantity-input[data-id='${id}']`).value;
+    
+    const res = await fetch("/admin/inventory/update-stock", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId: id, quantity })
+    });
+    const data = await res.json();
+    if(data.success){
+      alert("Stock updated successfully");
+    } else {
+      alert(data.message || "Failed to update stock");
+    }
+  });
+});
+</script>
+<%- include('../../partials/admin_footer') %>

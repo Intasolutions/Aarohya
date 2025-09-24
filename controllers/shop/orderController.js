@@ -1,7 +1,9 @@
 // controllers/shop/orderController.js
 const mongoose = require("mongoose");
+const path = require("path");
 const Order = require("../../models/Order");
-const Address = require("../../models/address"); // use your existing Address model
+const Address = require("../../models/address"); // keep your existing address model casing
+const Payout = require("../../models/Payout");
 
 /* ------------------------- helpers ------------------------- */
 
@@ -23,20 +25,13 @@ function normalizeOrder(orderDoc) {
       "img/bg-img/cart1.jpg";
     const color = it.color || p.color || "";
     const qty = Number(it.quantity || 1);
-    // Prefer stored lineTotal/unitPrice if present, else fall back
     const unit =
-      it.unitPrice ??
-      it.price ??
-      it.priceAtAdd ??
-      p.salePrice ??
-      p.regularPrice ??
-      0;
+      it.unitPrice ?? it.price ?? it.priceAtAdd ?? p.salePrice ?? p.regularPrice ?? 0;
     const total = (it.lineTotal != null) ? Number(it.lineTotal) : (unit * qty);
     const id = p._id || it.productId || null;
     return { id, name, img, color, qty, unit: Number(unit || 0), total: Number(total || 0) };
   });
 
-  // Prefer new schema totals; fall back to legacy mirrors/derived
   const subtotal =
     o.subtotal ??
     (o.totals && o.totals.subtotal) ??
@@ -67,10 +62,8 @@ function normalizeOrder(orderDoc) {
     o.amount ??
     (subtotal - discount + shipping + tax);
 
-  // Address: prefer new snapshot
   const address = o.shippingAddress || o.address || {};
 
-  // Status & payment: prefer new schema
   const meta = {
     orderId: o.orderId || String(o._id || ""),
     status: o.orderStatus || o.status || "pending",
@@ -100,6 +93,27 @@ function normalizeOrder(orderDoc) {
   };
 }
 
+/* ---------- OrderID helper (in-file, no extra models) ---------- */
+/** Generates IDs like: ORD-YYYYMMDD-#### (IST date, per-process sequence) */
+let __lastScope = "";
+let __seq = 0;
+function makeOrderIdIST(now = new Date()) {
+  const istOffsetMin = 330; // IST = UTC+5:30
+  const d = new Date(now.getTime() + istOffsetMin * 60 * 1000);
+  const yyyy = d.getUTCFullYear();
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(d.getUTCDate()).padStart(2, "0");
+  const scope = `${yyyy}${mm}${dd}`; // YYYYMMDD (IST)
+
+  if (scope !== __lastScope) {
+    __lastScope = scope;
+    __seq = 0;
+  }
+  __seq += 1;
+  const seqStr = String(__seq).padStart(4, "0");
+  return `ORD-${scope}-${seqStr}`;
+}
+
 /* ------------------------- list orders ------------------------- */
 
 exports.listOrders = async (req, res, next) => {
@@ -113,8 +127,6 @@ exports.listOrders = async (req, res, next) => {
     const q = (req.query.q || "").trim();
 
     const filter = { userId };
-
-    // filter by orderStatus (not the virtual)
     if (status) filter.orderStatus = new RegExp(`^${status}$`, "i");
 
     if (q) {
@@ -130,7 +142,6 @@ exports.listOrders = async (req, res, next) => {
     }
 
     const [orders, total] = await Promise.all([
-      // lean is fine; we'll normalize below
       Order.find(filter)
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
@@ -144,7 +155,7 @@ exports.listOrders = async (req, res, next) => {
 
     res.render("shop/orders", {
       user: req.user,
-      orders: normOrders, // pass normalized orders
+      orders: normOrders,
       page,
       totalPages,
       total,
@@ -161,19 +172,28 @@ exports.listOrders = async (req, res, next) => {
 exports.getOrderDetails = async (req, res, next) => {
   try {
     if (!req.user) return res.redirect("/auth/login");
-
     const id = req.params.id;
     if (!mongoose.isValidObjectId(id)) return res.redirect("/orders");
 
+    // Enforce ownership
     const order = await Order.findOne({ _id: id, userId: req.user._id }).lean();
     if (!order) return res.status(404).render("shop/orderDetails", { notFound: true });
 
     const norm = normalizeOrder(order);
 
+    // Payout for COD refund UI (customer view)
+    let payout = null;
+    try {
+      payout = await Payout.findOne({ orderId: order._id, userId: req.user._id }).lean();
+    } catch {}
+
     res.render("shop/orderDetails", {
       user: req.user,
-      order: order,
+      order,
       norm,
+      payout: payout || null,
+      error: req.query.err || "",
+      ok: req.query.ok || ""
     });
   } catch (err) {
     next(err);
@@ -203,7 +223,7 @@ exports.getInvoice = async (req, res, next) => {
         email: "support@aarohya.example",
         phone: "+91 90000 00000",
         address: "No. 42, MG Road, Bengaluru, KA 560001",
-        gstin: "29ABCDE1234F1Z5", // optional
+        gstin: "29ABCDE1234F1Z5",
       },
     });
   } catch (err) {
@@ -213,23 +233,18 @@ exports.getInvoice = async (req, res, next) => {
 
 /* ------------------------- place order ------------------------- */
 
-// small helpers for rounding & mapping
 const r2 = (n) => Math.round((Number(n || 0) + Number.EPSILON) * 100) / 100;
 
-// Try to gather items from request or session (no UI change needed)
 function pickCheckoutItems(req) {
-  if (Array.isArray(req.body.items) && req.body.items.length) {
-    return req.body.items;
-  }
+  if (Array.isArray(req.body.items) && req.body.items.length) return req.body.items;
   if (req.session && Array.isArray(req.session.checkoutItems) && req.session.checkoutItems.length) {
     return req.session.checkoutItems;
   }
-  // common cart session shapes
   if (req.session && req.session.cart && Array.isArray(req.session.cart.items) && req.session.cart.items.length) {
     return req.session.cart.items;
   }
   if (req.session && Array.isArray(req.session.cart) && req.session.cart.length) {
-    return req.session.cart; // sometimes stored as a flat array
+    return req.session.cart;
   }
   return null;
 }
@@ -261,7 +276,6 @@ async function loadSavedAddressSnapshot(userId, addressId) {
     throw new Error("Saved address not found");
   }
   const a = doc.address[0];
-  // copy every reqd field for Order snapshot
   return {
     addressType: a.addressType,
     name:        a.name,
@@ -278,21 +292,17 @@ async function loadSavedAddressSnapshot(userId, addressId) {
   };
 }
 
-exports.placeOrder = async (req, res, next) => {
+exports.placeOrder = async (req, res) => {
   try {
     if (!req.user) return res.redirect("/auth/login");
     const userId = req.user._id;
 
-    // 1) Items (from body or session)
     const rawItems = pickCheckoutItems(req);
-    if (!rawItems || !rawItems.length) {
-      throw new Error("No items to place order");
-    }
+    if (!rawItems || !rawItems.length) throw new Error("No items to place order");
     const orderedItems = mapToOrderedItems(rawItems);
 
-    // 2) Shipping snapshot
     let shippingAddress;
-    const addrId = req.body.addressId; // present when "Use saved" is selected
+    const addrId = req.body.addressId;
     if (addrId) {
       if (!mongoose.isValidObjectId(addrId)) throw new Error("Invalid address selected");
       shippingAddress = await loadSavedAddressSnapshot(userId, addrId);
@@ -316,20 +326,17 @@ exports.placeOrder = async (req, res, next) => {
       throw new Error("No address provided");
     }
 
-    // 3) Payment (must be in enum)
     const allowed = ["cod","wallet","razorpay","online","online payment"];
     const method = (req.body.paymentMethod || "").toLowerCase();
     if (!allowed.includes(method)) throw new Error("Invalid payment method");
     const payment = { method, paymentStatus: "pending", isPaid: false };
 
-    // 4) Totals
     const subtotal       = r2(orderedItems.reduce((s, i) => s + i.lineTotal, 0));
     const discountAmount = r2(Number(req.body.discountAmount || 0));
     const shippingFee    = r2(Number(req.body.shippingFee || 0));
     const taxAmount      = r2(Number(req.body.taxAmount || 0));
     const grandTotal     = r2(subtotal - discountAmount + shippingFee + taxAmount);
 
-    // 5) Save order
     const order = new Order({
       userId,
       orderedItems,
@@ -344,11 +351,12 @@ exports.placeOrder = async (req, res, next) => {
       notes: (req.body.note || "").slice(0, 1000),
       couponApplied: !!req.body.couponCode,
       couponCode: req.body.couponCode || undefined,
+      // structured per-day IST sequence
+      orderId: makeOrderIdIST()
     });
 
     await order.save();
 
-    // clear common session keys if present (optional, harmless if not set)
     if (req.session) {
       delete req.session.checkoutItems;
       if (req.session.cart) delete req.session.cart;
@@ -359,4 +367,175 @@ exports.placeOrder = async (req, res, next) => {
     console.error("PLACE_ORDER_ERR:", err && err.stack ? err.stack : err);
     return res.status(400).send("Could not place order: " + err.message);
   }
+};
+
+/* ------------------------- USER RETURNS (form + submit) ------------------------- */
+
+function isReturnEligible(order, windowDays = 7) {
+  if (!order) return { ok: false, msg: "Order not found" };
+  if (String(order.orderStatus).toLowerCase() !== "delivered") {
+    return { ok: false, msg: "Only delivered orders can be returned" };
+  }
+  if (!order.deliveredAt) {
+    return { ok: false, msg: "Delivered timestamp missing" };
+  }
+  const now = Date.now();
+  const deadline = new Date(order.deliveredAt).getTime() + windowDays * 24 * 60 * 60 * 1000;
+  if (now > deadline) {
+    return { ok: false, msg: `Return window (within ${windowDays} days) has expired` };
+  }
+  if (order.returnRequest && order.returnRequest.status && order.returnRequest.status !== "none") {
+    return { ok: false, msg: "There is already a return request in progress for this order" };
+  }
+  return { ok: true };
+}
+
+function coerceItemsPayload(bodyItems) {
+  if (!bodyItems) return [];
+  if (Array.isArray(bodyItems)) return bodyItems;
+
+  const out = [];
+  Object.keys(bodyItems).forEach(k => {
+    const v = bodyItems[k];
+    if (!v) return;
+    const selected = String(v.selected || "").trim() === "1";
+    const pid = v.productId || v.id;
+    const qty = v.quantity;
+    if (selected && pid) out.push({ productId: pid, quantity: qty });
+  });
+  return out;
+}
+
+function validateReturnItems(order, payloadItems) {
+  const err = (msg) => ({ ok: false, msg });
+  if (!Array.isArray(payloadItems) || !payloadItems.length) {
+    return err("Select at least one item to return");
+  }
+
+  const byId = new Map();
+  (order.orderedItems || []).forEach(it => byId.set(String(it.productId), it));
+
+  const normalized = [];
+  for (const raw of payloadItems) {
+    const pid = String(raw.productId || "").trim();
+    const qty = Math.max(1, Number(raw.quantity || 0));
+    if (!pid || !byId.has(pid)) return err("Invalid product in request");
+    const it = byId.get(pid);
+    const st = String(it.productStatus || "").toLowerCase();
+    if (st === "cancelled" || st === "returned") {
+      return err(`Item "${it.productName}" is not eligible for return`);
+    }
+    if (qty > Number(it.quantity || 0)) {
+      return err(`Quantity for "${it.productName}" exceeds purchased quantity`);
+    }
+    normalized.push({
+      productId: it.productId,
+      productName: it.productName,
+      quantity: qty,
+      unitPrice: Number(it.unitPrice || 0),
+      lineTotal: Math.round((Number(it.unitPrice || 0) * qty + Number.EPSILON) * 100) / 100
+    });
+  }
+  return { ok: true, items: normalized };
+}
+
+// GET /orders/:id/return
+exports.getReturnForm = async (req, res, next) => {
+  try {
+    if (!req.user) return res.redirect("/auth/login");
+    const id = req.params.id;
+    if (!mongoose.isValidObjectId(id)) return res.redirect("/orders");
+
+    const order = await Order.findOne({ _id: id, userId: req.user._id }).lean();
+    if (!order) return res.redirect("/orders");
+
+    const elig = isReturnEligible(order);
+    if (!elig.ok) {
+      return res.status(400).render("shop/return", {
+        user: req.user,
+        order,
+        eligible: false,
+        reason: elig.msg,
+        items: [],
+      });
+    }
+
+    const items = (order.orderedItems || [])
+      .filter(it => String(it.productStatus).toLowerCase() === "active")
+      .map(it => ({
+        id: String(it.productId),
+        name: it.productName,
+        img: it.image,
+        color: it.color,
+        qty: it.quantity,
+        unit: it.unitPrice,
+      }));
+
+    return res.render("shop/return", {
+      user: req.user,
+      order,
+      eligible: true,
+      reason: "",
+      items
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /orders/:id/return
+exports.submitReturn = async (req, res) => {
+  try {
+    if (!req.user) return res.redirect("/auth/login");
+    const id = req.params.id;
+    if (!mongoose.isValidObjectId(id)) return res.redirect("/orders");
+
+    const order = await Order.findOne({ _id: id, userId: req.user._id });
+    if (!order) return res.redirect("/orders");
+
+    const elig = isReturnEligible(order);
+    if (!elig.ok) {
+      return res.status(400).send(elig.msg);
+    }
+
+    const reason = (req.body.reason || "").trim().slice(0, 200);
+    const description = (req.body.description || "").trim().slice(0, 1000);
+    const itemsPayload = coerceItemsPayload(req.body.items);
+    const v = validateReturnItems(order.toObject(), itemsPayload);
+    if (!v.ok) return res.status(400).send(v.msg);
+
+    const MAX_FILES = 5;
+    const files = Array.isArray(req.files) ? req.files.slice(0, MAX_FILES) : [];
+    const imagePaths = files.map(f => (f.path ? f.path.split(path.sep).join("/") : "")).filter(Boolean);
+
+    order.returnRequest = {
+      status: "pending",
+      reason,
+      description,
+      images: imagePaths,
+      requestedAt: new Date(),
+      reviewedAt: null,
+      rejectionReason: null,
+      rejectionCategory: null,
+      items: v.items,
+    };
+    order.orderStatus = "return_requested";
+
+    await order.save();
+
+    return res.redirect(`/orders/${order._id}`);
+  } catch (err) {
+    console.error("SUBMIT_RETURN_ERR:", err && err.stack ? err.stack : err);
+    return res.status(400).send("Could not submit return request: " + err.message);
+  }
+};
+
+/* ------------------------- explicit export map (fix for routes) ------------------------- */
+module.exports = {
+  listOrders: exports.listOrders,
+  getOrderDetails: exports.getOrderDetails,
+  getInvoice: exports.getInvoice,
+  placeOrder: exports.placeOrder,
+  getReturnForm: exports.getReturnForm,
+  submitReturn: exports.submitReturn,
 };

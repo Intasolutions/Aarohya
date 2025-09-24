@@ -39,25 +39,26 @@
         <th>Actions</th>
       </tr>
     </thead>
-    <tbody>
-      <% order.orderedItems.forEach(item => { %>
-        <tr>
-          <td><%= item.productName %></td>
-          <td><%= item.quantity %></td>
-          <td>₹<%= item.unitPrice.toLocaleString('en-IN') %></td>
-          <td>₹<%= item.lineTotal.toLocaleString('en-IN') %></td>
-          <td><%= item.productStatus %></td>
-          <td>
-            <% if (item.productStatus === "active" && ["pending","processing"].includes(order.orderStatus)) { %>
-              <form method="post" action="/admin/orders/<%= order._id %>/items/<%= item._id %>/cancel" style="display:inline;">
-                <input type="hidden" name="reason" value="Admin cancelled">
-                <button type="submit" class="btn btn-sm btn-danger">Cancel Item</button>
-              </form>
-            <% } %>
-          </td>
-        </tr>
-      <% }) %>
-    </tbody>
+   <tbody>
+  <% order.orderedItems.forEach((item, index) => { %>
+    <tr>
+      <td><%= item.productName %></td>
+      <td><%= item.quantity %></td>
+      <td>₹<%= item.unitPrice.toLocaleString('en-IN') %></td>
+      <td>₹<%= item.lineTotal.toLocaleString('en-IN') %></td>
+      <td><%= item.productStatus %></td>
+      <td>
+        <% if (item.productStatus === "active" && ["pending","processing"].includes(order.orderStatus)) { %>
+          <form method="post" action="/admin/orders/<%= order._id %>/items/<%= index %>/cancel" style="display:inline;">
+            <input type="hidden" name="reason" value="Admin cancelled">
+            <button type="submit" class="btn btn-sm btn-danger">Cancel Item</button>
+          </form>
+        <% } %>
+      </td>
+    </tr>
+  <% }) %>
+</tbody>
+
   </table>
 
   <hr>
@@ -71,6 +72,15 @@
     </select>
     <button type="submit" class="btn btn-primary">Update</button>
   </form>
+<% if (typeof query !== 'undefined' && query.error) { %>
+  <div class="alert alert-danger"><%= query.error %></div>
+<% } %>
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-danger"><%= error %></div>
+  <% } %>
+  <% if (typeof ok !== 'undefined' && ok) { %>
+    <div class="alert alert-success"><%= ok %></div>
+  <% } %>
 
   <h5 class="mt-4">Tracking</h5>
   <form method="post" action="/admin/orders/<%= order._id %>/tracking">
@@ -89,6 +99,177 @@
       </div>
     </div>
   </form>
+  <hr>
+<h5>Return Management</h5>
+
+<% const rr = order.returnRequest || {}; %>
+<div class="card card-body mb-3">
+  <p><strong>Status:</strong> <%= rr.status || 'none' %>
+    <% if (order.orderStatus) { %>
+      <span class="ml-2 badge badge-light"><%= order.orderStatus %></span>
+    <% } %>
+  </p>
+  <% if (rr.reason) { %><p><strong>Reason:</strong> <%= rr.reason %></p><% } %>
+  <% if (rr.description) { %><p><strong>Description:</strong> <%= rr.description %></p><% } %>
+  <% if (Array.isArray(rr.images) && rr.images.length) { %>
+    <div class="mb-2"><strong>Images:</strong></div>
+    <div class="d-flex flex-wrap" style="gap:8px">
+      <% rr.images.forEach(function(img){ %>
+        <img src="/public/<%= img %>" alt="" style="width:96px;height:96px;object-fit:cover;border:1px solid #dee2e6;border-radius:6px">
+      <% }) %>
+    </div>
+  <% } %>
+
+  <% if (Array.isArray(rr.items) && rr.items.length) { %>
+    <div class="mt-3">
+      <strong>Items requested to return</strong>
+      <table class="table table-sm mt-2">
+        <thead><tr><th>Product</th><th>Qty</th><th>Unit</th><th>Line</th></tr></thead>
+        <tbody>
+          <% rr.items.forEach(function(it){ %>
+            <tr>
+              <td><%= it.productName %></td>
+              <td><%= it.quantity %></td>
+              <td>₹<%= Number(it.unitPrice).toLocaleString('en-IN') %></td>
+              <td>₹<%= Number(it.lineTotal).toLocaleString('en-IN') %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+
+  <div class="mt-3">
+    <% if (order.orderStatus === 'return_requested') { %>
+      <form method="post" action="/admin/orders/<%= order._id %>/return/approve" style="display:inline">
+        <button class="btn btn-success btn-sm">Approve Return</button>
+      </form>
+      <form method="post" action="/admin/orders/<%= order._id %>/return/reject" style="display:inline;margin-left:8px">
+        <input type="hidden" name="rejectionReason" value="Not eligible">
+        <input type="hidden" name="rejectionCategory" value="policy">
+        <button class="btn btn-danger btn-sm">Reject Return</button>
+      </form>
+    <% } else if (order.orderStatus === 'returning') { %>
+      <form method="post" action="/admin/orders/<%= order._id %>/return/receive" style="display:inline">
+        <button class="btn btn-primary btn-sm">Mark as Received (QC Passed)</button>
+      </form>
+    <% } else if (order.orderStatus === 'returned') { %>
+      <form method="post" action="/admin/orders/<%= order._id %>/return/refund" class="form-inline" style="display:inline">
+        <div class="form-group mr-2">
+          <label class="mr-1">Amount (₹)</label>
+          <input type="number" step="0.01" class="form-control form-control-sm" name="amount" placeholder="Leave blank to auto-calc">
+        </div>
+        <div class="form-group mr-2">
+          <input type="text" class="form-control form-control-sm" name="reason" placeholder="Reason (optional)">
+        </div>
+        <button class="btn btn-warning btn-sm">Issue Refund</button>
+      </form>
+    <% } %>
+  </div>
+</div>
+<hr>
+<h5>COD Refund Payout</h5>
+
+<% 
+  const isCOD = ((order.payment && order.payment.method) || '').toLowerCase() === 'cod';
+  const st = (order.orderStatus || '').toLowerCase();
+  const showAdminPayout = isCOD && (st === 'return_requested' || st === 'returned');
+%>
+
+<% if (!showAdminPayout) { %>
+  <div class="alert alert-secondary">Payout not applicable (requires COD + return requested/returned).</div>
+<% } else { %>
+  <% if (!payout) { %>
+    <div class="alert alert-warning">No payout record yet. It will be created after the customer submits refund destination.</div>
+  <% } else if (payout.status === 'pending_destination') { %>
+    <div class="alert alert-info">Awaiting customer payout destination.</div>
+    <!-- Admin override form (optional) -->
+    <form method="post" action="/admin/orders/<%= order._id %>/payout/destination" class="mb-3">
+      <div class="form-row">
+        <div class="col-md-3">
+          <label>Method</label>
+          <select name="method" class="form-control">
+            <option value="UPI">UPI</option>
+            <option value="BANK">Bank</option>
+          </select>
+        </div>
+        <div class="col-md-9">
+          <label>UPI ID</label>
+          <input name="upiId" class="form-control" placeholder="name@bank">
+        </div>
+      </div>
+      <div class="mt-2"><strong>OR Bank Details</strong></div>
+      <div class="form-row">
+        <div class="col-md-4"><input name="accountName" class="form-control" placeholder="Account name"></div>
+        <div class="col-md-4"><input name="accountNumber" class="form-control" placeholder="Account number"></div>
+        <div class="col-md-4"><input name="ifsc" class="form-control" placeholder="IFSC (e.g., HDFC0001234)"></div>
+      </div>
+      <div class="form-row mt-2">
+        <div class="col-md-6"><input name="bankName" class="form-control" placeholder="Bank name (optional)"></div>
+        <div class="col-md-6"><input name="branch" class="form-control" placeholder="Branch (optional)"></div>
+      </div>
+      <button class="btn btn-sm btn-primary mt-2">Save destination</button>
+    </form>
+  <% } else if (payout.status === 'ready') { %>
+    <div class="alert alert-success">
+      Destination on file: 
+      <% if (payout.destination && payout.destination.method === 'UPI') { %>
+        UPI <code><%= payout.destination.upiId %></code>
+      <% } else if (payout.destination && payout.destination.method === 'BANK') { %>
+        BANK <%= payout.destination.accountName %>, <code><%= payout.destination.accountNumber %></code>, IFSC <code><%= payout.destination.ifsc %></code>
+      <% } %>
+      <br>Amount ₹<%= payout.amount %>
+    </div>
+    <form method="post" action="/admin/orders/<%= order._id %>/payout/mark-paid">
+      <div class="form-row">
+        <div class="col-md-4">
+          <label>Transaction Ref / UTR</label>
+          <input name="transactionRef" class="form-control" required>
+        </div>
+        <div class="col-md-4">
+          <label>Paid At</label>
+          <input type="datetime-local" name="paidAt" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label>Notes (optional)</label>
+          <input name="notes" class="form-control">
+        </div>
+      </div>
+      <button class="btn btn-sm btn-success mt-2">Mark as Paid</button>
+    </form>
+  <% } else if (payout.status === 'paid') { %>
+    <div class="alert alert-success">
+      Refund PAID • Amount ₹<%= payout.amount %> • Ref: <code><%= payout.transfer && payout.transfer.transactionRef || 'N/A' %></code>
+      <br>Paid At: <%= payout.transfer && payout.transfer.paidAt ? new Date(payout.transfer.paidAt).toLocaleString() : '-' %>
+    </div>
+  <% } else { %>
+    <div class="alert alert-secondary">Payout status: <%= payout.status %></div>
+  <% } %>
+<% } %>
+
+
+
+
+<h6>Refund History</h6>
+<table class="table table-sm">
+  <thead><tr><th>Refund ID</th><th>Amount</th><th>Status</th><th>When</th></tr></thead>
+  <tbody>
+    <% const rf = (order.payment && order.payment.refunds) || []; %>
+    <% if (rf.length) { %>
+      <% rf.forEach(function(r){ %>
+        <tr>
+          <td><%= r.refundId %></td>
+          <td>₹<%= (Number(r.amount||0)/100).toLocaleString('en-IN') %></td>
+          <td><%= r.status || '-' %></td>
+          <td><%= r.createdAt ? new Date(r.createdAt).toLocaleString() : '-' %></td>
+        </tr>
+      <% }) %>
+    <% } else { %>
+      <tr><td colspan="4" class="text-muted">No refunds yet</td></tr>
+    <% } %>
+  </tbody>
+</table>
+
 
   <% if (["pending","processing"].includes(order.orderStatus)) { %>
     <form method="post" action="/admin/orders/<%= order._id %>/cancel" class="mt-3">

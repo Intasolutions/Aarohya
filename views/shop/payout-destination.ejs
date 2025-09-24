@@ -1,0 +1,38 @@
+<%- include('../partials/header1') %>
+<div class="container" style="max-width:720px;margin:24px auto">
+  <h3>Refund Destination for Order <%= order.orderId %></h3>
+  <% if (error) { %><div class="alert alert-danger"><%= error %></div><% } %>
+  <% if (ok) { %><div  class="alert alert-success"><%= ok %></div><% } %>
+
+  <form method="post">
+    <div class="form-row">
+      <div class="col-md-3">
+        <label>Method</label>
+        <select name="method" class="form-control">
+          <option value="UPI">UPI</option>
+          <option value="BANK">Bank</option>
+        </select>
+      </div>
+      <div class="col-md-9">
+        <label>UPI ID</label>
+        <input name="upiId" class="form-control" placeholder="name@bank">
+      </div>
+    </div>
+
+    <div class="mt-3"><strong>OR Bank Details</strong></div>
+    <div class="form-row">
+      <div class="col-md-6"><input name="accountName" class="form-control" placeholder="Account name"></div>
+      <div class="col-md-6"><input name="accountNumber" class="form-control" placeholder="Account number"></div>
+    </div>
+    <div class="form-row mt-2">
+      <div class="col-md-6"><input name="ifsc" class="form-control" placeholder="IFSC (e.g., HDFC0001234)"></div>
+      <div class="col-md-6"><input name="bankName" class="form-control" placeholder="Bank name (optional)"></div>
+    </div>
+    <div class="form-row mt-2">
+      <div class="col-md-6"><input name="branch" class="form-control" placeholder="Branch (optional)"></div>
+    </div>
+
+    <button class="btn btn-primary mt-3">Submit</button>
+  </form>
+</div>
+<%- include('../partials/footer1') %>
